@@ -14,7 +14,6 @@ const std::string RUTA_BASE = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr
 class Controlador {
     private:
         int sectores;
-        int cantBloques;
         int bloqueAct;
         int* freeSpaceMap;
         std::string rutaBase;
@@ -23,10 +22,13 @@ class Controlador {
         Disco disco;
         bool tipo; //TRUE si es longitud variable, FALSE si es fija
         int longitudRegistro;
-        int cantSectores;
+        int cantSectoresxBloque;
         int cantBloques;
+        int totalSectores;
 
     public:
+        Controlador();
+        
         Controlador(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque);
 
         void getInformacion();
@@ -37,25 +39,13 @@ class Controlador {
 
         void configurarDirectorio(); //Llenar el directorio con información de bloques
 
-        void guardarInfoEnSectores(); //Los registros se guardan en los sectores
+        //void guardarInfoEnSectores(); //Los registros se guardan en los sectores
 
-        void agregarBloquesEsquema(std::string);
+        //void agregarBloquesEsquema(std::string);
 
         int getEspacioLibreBloque(int);
 
-        void actualizarEspacioLibreBloque(int, int);
-
-
-
-
-
-
-
-        void ingresarLongitudEsquema(std::string, int); //Ingresa el tamaño máximo de 
-
-    
-        
-
+        void updateEspacioLibreBloque(int, int);
 
 
         //------------------------------------------

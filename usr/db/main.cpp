@@ -801,15 +801,38 @@ int main() {
 					std::cin >> option;*/
 					option = false;
 
+					//Controlador controlador;
+
 					if(answer == 'S' || answer == 's') {
-						Controlador controlador(1, option);                
-						//controlador.generarBloque();
+						Controlador controlador(option, 3, 6, 10, 300,20);
+						controlador.crearSectores();
+						controlador.configurarDirectorio();
 					}
 					else if(answer == 'N' || answer == 'n') {
-						Controlador controlador(2, option);
-						//controlador.generarBloque();
-					}
+						std::cout << "Ingresa la cantidad de platos: ";
+						int nroPlatos;
+						std::cin >> nroPlatos;
+						
+						std::cout << "Ingresa la cantidad de pistas x plato: ";
+						int nroPistas;
+						std::cin >> nroPistas;
 
+						std::cout << "Ingresa la cantidad de sectores x pista: ";
+						int nroSectores;
+						std::cin >> nroSectores;
+
+						std::cout << "Ingresa la cantidad de bytes x sector: ";
+						int bytesxSector;
+						std::cin >> bytesxSector;
+
+						std::cout << "Ingresa la cantidad de sectores x bloque: ";
+						int sectoresxBloque;
+						std::cin >> sectoresxBloque;
+						
+						Controlador controlador(option, nroPlatos, nroPistas, nroSectores, bytesxSector,sectoresxBloque);
+						controlador.crearSectores();
+						controlador.configurarDirectorio();
+					}
 				}
 				break;
 			}

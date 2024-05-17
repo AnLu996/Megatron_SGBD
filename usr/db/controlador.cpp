@@ -8,9 +8,16 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+Controlador::Controlador() : disco(0, 0, 0, 0, 0), freeSpaceMap(nullptr) {
 
-Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo) {
-    
+
+}
+
+
+Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo), cantSectoresxBloque(sectoresxBloque) {
+    this->totalSectores = nroPlatos * nroPistas * nroSectores;
+    this-> cantBloques = this->totalSectores / sectoresxBloque;
+
     freeSpaceMap = new int[sectoresxBloque];
     for (int i = 0; i < cantBloques; i++) {
         freeSpaceMap[i] = disco.getTamañoBloque();
@@ -34,7 +41,7 @@ void Controlador::crearSectores() {
     fs::remove_all(carpetaSectores);
     fs::create_directories(carpetaSectores);
 
-    for (int sector = 1; sector <= this->cantSectores; sector++)
+    for (int sector = 1; sector <= this->totalSectores; sector++)
     {
         std::string archivoSector = carpetaSectores + "/Sector" + std::to_string(sector) + ".txt";
         fs::create_directories(archivoSector);
@@ -44,18 +51,41 @@ void Controlador::crearSectores() {
 }
 
 void Controlador::configurarDirectorio() {
+    int cont  = 1;
+    int bloque = 1;
+    int totalSectoresxBloque = this->cantSectoresxBloque;
+    int totalSectores = this->totalSectores;
+
+
     std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
     if (!diccionarioFile.is_open()) {
         std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
         return;
-    } 
-
-    for(int bloque = 1; bloque <= this->cantBloques; bloque++) {
-        diccionarioFile << std::to_string(bloque) + '#';
-
     }
 
+    while (totalSectores != -1){
+        diccionarioFile << std::to_string(bloque) + '#';
+        for(int sector = 1; sector <= totalSectoresxBloque; sectores++) {
+            diccionarioFile << std::to_string(sector) + ',';
+            totalSectores--;
+        }
+        diccionarioFile << std::endl;
+        bloque++;
+    }
+
+    diccionarioFile.close();
 }
+
+int Controlador::getEspacioLibreBloque(int bloque) {
+    return freeSpaceMap[bloque-1];
+}
+
+
+void Controlador::updateEspacioLibreBloque(int bloque, int espacioUtilizado) {
+    freeSpaceMap[bloque-1] -= espacioUtilizado;
+}
+
+
 
 
 
@@ -123,11 +153,6 @@ void Controlador::ingresarLongitudEsquema(std::string esquema, int tamañoRegist
 
 void llenarDirectorioBloques(int bloque, )
 
-void crearCarpeta(const std::string& carpeta) {
-    if (!fs::exists(carpeta)) {
-        fs::create_directory(carpeta);
-    }
-}
 
 void Controlador::generarBloque() {
     std::string carpeta = "Bloques";
@@ -151,15 +176,6 @@ void Controlador::generarBloque() {
         }
         cont = cont + sectoresxBloque;
     }
-}
-
-
-int Controlador::getEspacioLibreBloque(int bloque) {
-    return freeSpaceMap[bloque-1];
-}
-
-void Controlador::actualizarEspacioLibreBloque(int bloque, int espacioUtilizado) {
-    freeSpaceMap[bloque-1] -= espacioUtilizado;
 }
 
 

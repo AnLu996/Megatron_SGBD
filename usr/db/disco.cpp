@@ -4,17 +4,6 @@
 #include <fstream>
 #include <string>
 
-
-Disco::Disco() {
-    this->nroPlatos = 8;
-    this->nroSuperficies = 2;
-    this->nroPistas =16384;
-    this->nroSectores = 128;
-    this->bytesxSector = 4096;
-    this->sectoresxBloque = 640;
-    this->rutaBase = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\"; 
-}
-
 Disco::Disco(int platos, int pistas, int sectores, int tamañoSector, int tamañoBloque) {
     this->nroPlatos = platos;
     this->nroSuperficies = 2;
