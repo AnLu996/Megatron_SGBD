@@ -11,14 +11,6 @@ namespace fs = std::filesystem;
 
 Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo) {
     
-    std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
-    if (!diccionarioFile.is_open()) {
-        std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
-    } else {
-        std::cout << "Archivo directorio.txt creado correctamente." << std::endl;
-        diccionarioFile.close();
-    }
-
     freeSpaceMap = new int[sectoresxBloque];
     for (int i = 0; i < cantBloques; i++) {
         freeSpaceMap[i] = disco.getTamañoBloque();
@@ -52,7 +44,17 @@ void Controlador::crearSectores() {
 }
 
 void Controlador::configurarDirectorio() {
-    
+    std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
+    if (!diccionarioFile.is_open()) {
+        std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
+        return;
+    } 
+
+    for(int bloque = 1; bloque <= this->cantBloques; bloque++) {
+        diccionarioFile << std::to_string(bloque) + '#';
+
+    }
+
 }
 
 
