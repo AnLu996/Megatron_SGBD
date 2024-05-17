@@ -9,57 +9,56 @@
 namespace fs = std::filesystem;
 
 
-Controlador::Controlador(int porDefecto, bool longitud) : longitud(longitud), bloqueAct(1) {
-    Disco disco;
-    this->bloqueAct = 1;
-    if (porDefecto == 1) {
-        disco = Disco();
-    } else {
-        std::cout << "Ingresa la cantidad de platos: ";
-        int nroPlatos;
-        std::cin >> nroPlatos;
-        
-        std::cout << "Ingresa la cantidad de pistas x plato: ";
-        int nroPistas;
-        std::cin >> nroPistas;
-
-        std::cout << "Ingresa la cantidad de sectores x pista: ";
-        int nroSectores;
-        std::cin >> nroSectores;
-
-        std::cout << "Ingresa la cantidad de bytes x sector: ";
-        int bytesxSector;
-        std::cin >> bytesxSector;
-
-        std::cout << "Ingresa la cantidad de sectores x bloque: ";
-        int sectoresxBloque;
-        std::cin >> sectoresxBloque;
-        
-        disco = Disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque);
-    }
+Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo) {
     
-    this->rutaBase = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\"; 
+    std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
+    if (!diccionarioFile.is_open()) {
+        std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
+    } else {
+        std::cout << "Archivo directorio.txt creado correctamente." << std::endl;
+        diccionarioFile.close();
+    }
+
+    freeSpaceMap = new int[sectoresxBloque];
+    for (int i = 0; i < cantBloques; i++) {
+        freeSpaceMap[i] = disco.getTamañoBloque();
+    }
+}
+
+void Controlador::getInformacion() {
     std::cout << "------------------------------------------------------" << std::endl;
     disco.getTamañoTotal();
     std::cout << "La cantidad de bloques es: " << disco.getCantidadBloques() << std::endl;
     std::cout << "Tamanio del bloque: " << disco.getTamañoBloque() << std::endl;
     std::cout << "------------------------------------------------------" << std::endl;
-
-    std::ofstream diccionarioFile("F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\directorio.txt");
-    if (!diccionarioFile.is_open()) {
-        std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
-    } else {
-        std::cout << "Archivo directorio.txt creado correctamente." <<2 std::endl;
-        diccionarioFile.close();
-    }
-
-    cantBloques = disco.getCantidadBloques();
-
-    freeSpaceMap = new int[cantBloques];
-    for (int i = 0; i < cantBloques; i++) {
-        freeSpaceMap[i] = disco.getTamañoBloque();
-    }
 }
+
+void Controlador::setLongitudRegistro(int longitud) {
+    this->longitudRegistro = longitud;
+}
+
+void Controlador::crearSectores() {
+    std::string carpetaSectores = RUTA_BASE + "\\Sectores" ;
+    fs::remove_all(carpetaSectores);
+    fs::create_directories(carpetaSectores);
+
+    for (int sector = 1; sector <= this->cantSectores; sector++)
+    {
+        std::string archivoSector = carpetaSectores + "/Sector" + std::to_string(sector) + ".txt";
+        fs::create_directories(archivoSector);
+    }
+    
+    std::cout << "La estructura del disco ha sido creada exitosamente." << std::endl;
+}
+
+void Controlador::configurarDirectorio() {
+    
+}
+
+
+
+
+/*
 
 void Controlador::ingresarLongitudEsquema(std::string esquema, int tamañoRegistro) {
     std::ifstream fileEsquema(this->rutaBase + "esquema.txt");
@@ -118,9 +117,9 @@ void Controlador::ingresarLongitudEsquema(std::string esquema, int tamañoRegist
         }
         cont += sectoresxBloque;
     }
-}*/
+}
 
-/*void llenarDirectorioBloques(int bloque, )*/
+void llenarDirectorioBloques(int bloque, )
 
 void crearCarpeta(const std::string& carpeta) {
     if (!fs::exists(carpeta)) {
@@ -180,7 +179,7 @@ void asignarEspacio(int idRegistro, int plato, int superficie, int pista, int se
     
 }
 
-/*Registro Controlador::recuperarRegistro(int idRegistro) {
+Registro Controlador::recuperarRegistro(int idRegistro) {
     auto ubicacion = diccionarioBloques.find(idRegistro);
     if (ubicacion != diccionarioBloques.end()) {
         auto [plato, superficie, pista, sector] = ubicacion->second;
@@ -189,13 +188,13 @@ void asignarEspacio(int idRegistro, int plato, int superficie, int pista, int se
         std::cerr << "Registro no encontrado." << std::endl;
         return Registro{-1 };
     }
-}*/
+}
 
 void Controlador::crearCarpeta(const std::string& carpeta) {
     if (!fs::exists(carpeta)) {
         fs::create_directory(carpeta);
     }
-}
+}*/
 
 Controlador::~Controlador() {
     delete[] freeSpaceMap;

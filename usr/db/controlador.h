@@ -9,24 +9,51 @@
 #include <unordered_map>
 #include <tuple>
 
+const std::string RUTA_BASE = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\";
+
 class Controlador {
     private:
-        Disco disco;
         int sectores;
         int cantBloques;
         int bloqueAct;
         int* freeSpaceMap;
-        bool longitud; //TRUE si es longitud variable, FALSE si es fija
         std::string rutaBase;
 
+//---------------------------------------------------------
+        Disco disco;
+        bool tipo; //TRUE si es longitud variable, FALSE si es fija
+        int longitudRegistro;
+        int cantSectores;
+        int cantBloques;
+
     public:
-        Controlador(int, bool);
-        void ingresarLongitudEsquema(std::string, int);
+        Controlador(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque);
+
+        void getInformacion();
+
+        void setLongitudRegistro(int); //Indica la longitud de registro en caso se considere un disco de LONGITUD FIJA
+
+        void crearSectores(); //Crea la carpte con la cantidad de sectores establecido
+
+        void configurarDirectorio(); //Llenar el directorio con información de bloques
+
+        void guardarInfoEnSectores(); //Los registros se guardan en los sectores
+
         void agregarBloquesEsquema(std::string);
+
         int getEspacioLibreBloque(int);
+
         void actualizarEspacioLibreBloque(int, int);
-        void generarBloque();
-        void crearCarpeta(const std::string&);
+
+
+
+
+
+
+
+        void ingresarLongitudEsquema(std::string, int); //Ingresa el tamaño máximo de 
+
+    
         
 
 
