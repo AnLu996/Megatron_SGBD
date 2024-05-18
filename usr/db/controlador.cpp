@@ -36,37 +36,54 @@ void Controlador::setLongitudRegistro(int longitud) {
     this->longitudRegistro = longitud;
 }
 
-void Controlador::crearSectores() {
+void Controlador::crearEsquema() {
     std::string carpetaSectores = RUTA_BASE + "\\Sectores" ;
     fs::remove_all(carpetaSectores);
     fs::create_directories(carpetaSectores);
 
-    for (int sector = 1; sector <= this->totalSectores; sector++)
+    for (int sector = 1; sector <= this->totalSectores; sector++) {
+        std::string archivoSector = carpetaSectores + "\\Sector" + std::to_string(sector) + ".txt";
+        std::ofstream archivo(archivoSector);
+        if (!archivo.is_open()) {
+            std::cerr << "Error al crear el archivo " << archivoSector << '\n';
+        }
+        archivo.close();
+    }
+
+    std::string carpetaBloques = RUTA_BASE + "\\Bloques" ;
+    fs::remove_all(carpetaBloques);
+    fs::create_directories(carpetaBloques);
+
+    for (int bloque = 1; bloque <= this->cantBloques; bloque++)
     {
-        std::string archivoSector = carpetaSectores + "/Sector" + std::to_string(sector) + ".txt";
-        fs::create_directories(archivoSector);
+        std::string archivoBloque = carpetaBloques + "\\Bloque" + std::to_string(bloque) + ".txt";
+        std::ofstream archivo(archivoBloque);
+        if (!archivo.is_open()) {
+            std::cerr << "Error al crear el archivo " << archivoBloque << '\n';
+        }
+        archivo.close();
     }
     
     std::cout << "La estructura del disco ha sido creada exitosamente." << std::endl;
 }
 
 void Controlador::configurarDirectorio() {
-    int cont  = 1;
-    int bloque = 1;
-    int totalSectoresxBloque = this->cantSectoresxBloque;
-    int totalSectores = this->totalSectores;
-
-
     std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
     if (!diccionarioFile.is_open()) {
         std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
         return;
     }
+    
+    int bloque = 1;
+    int totalSectores = this->totalSectores;
 
-    while (totalSectores != -1){
+    while (totalSectores > 0 && bloque <= totalSectores) { // Añadimos la condición bloque <= totalSectores
         diccionarioFile << std::to_string(bloque) + '#';
-        for(int sector = 1; sector <= totalSectoresxBloque; sectores++) {
-            diccionarioFile << std::to_string(sector) + ',';
+        for(int sector = 1; sector <= this->cantSectoresxBloque; sector++) { // Cambiamos sectores++ a sector++
+            diccionarioFile << std::to_string(sector);
+            if (sector < cantSectoresxBloque || totalSectores > 1) {
+                diccionarioFile << ',';
+            }
             totalSectores--;
         }
         diccionarioFile << std::endl;
@@ -216,4 +233,21 @@ void Controlador::crearCarpeta(const std::string& carpeta) {
 
 Controlador::~Controlador() {
     delete[] freeSpaceMap;
+
+    std::string pathBloque = RUTA_BASE + "\\Bloques";
+    std::string pathSector = RUTA_BASE + "\\Sectores";
+
+    /*try {
+        // Verificar si la carpeta existe
+        if (fs::exists(pathBloque) && fs::is_directory(pathBloque) && fs::exists(pathSector) && fs::is_directory(pathSector) ) {
+            // Eliminar la carpeta y su contenido
+            fs::remove_all(pathBloque);
+            fs::remove_all(pathSector);
+            std::cout << "Carpetas eliminada correctamente.\n";
+        } else {
+            std::cerr << "Las carpetas no existen o no es una carpeta válida.\n";
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error al eliminar la carpeta: " << e.what() << '\n';
+    }*/
 }

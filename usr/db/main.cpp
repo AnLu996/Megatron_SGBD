@@ -805,7 +805,7 @@ int main() {
 
 					if(answer == 'S' || answer == 's') {
 						Controlador controlador(option, 3, 6, 10, 300,20);
-						controlador.crearSectores();
+						controlador.crearEsquema();
 						controlador.configurarDirectorio();
 					}
 					else if(answer == 'N' || answer == 'n') {
@@ -830,7 +830,7 @@ int main() {
 						std::cin >> sectoresxBloque;
 						
 						Controlador controlador(option, nroPlatos, nroPistas, nroSectores, bytesxSector,sectoresxBloque);
-						controlador.crearSectores();
+						controlador.crearEsquema();
 						controlador.configurarDirectorio();
 					}
 				}
@@ -954,7 +954,9 @@ int main() {
             break;
         }
 		case 6: {
+			//controlador.~Controlador();
 			continuar = false;
+
 			break;
 		}
         default:

@@ -35,7 +35,7 @@ class Controlador {
 
         void setLongitudRegistro(int); //Indica la longitud de registro en caso se considere un disco de LONGITUD FIJA
 
-        void crearSectores(); //Crea la carpte con la cantidad de sectores establecido
+        void crearEsquema(); //Crea la carpte con la cantidad de sectores establecido y bloques
 
         void configurarDirectorio(); //Llenar el directorio con información de bloques
 
