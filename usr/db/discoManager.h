@@ -1,5 +1,5 @@
-#ifndef CONTROLADOR_H
-#define CONTROLADOR_H
+#ifndef DISCOMANAGER_H
+#define DISCOMANAGER_H
 
 #include "disco.h"
 
@@ -11,7 +11,7 @@
 
 const std::string RUTA_BASE = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\";
 
-class Controlador {
+class DiscoManager {
     private:
         int sectores;
         int bloqueAct;
@@ -27,9 +27,9 @@ class Controlador {
         int totalSectores;
 
     public:
-        Controlador();
+        DiscoManager();
         
-        Controlador(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque);
+        DiscoManager(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque);
 
         void getInformacion();
 
@@ -55,7 +55,7 @@ class Controlador {
         void modificarBitMap();
         
         Registro recuperarRegistro(int);*/
-        ~Controlador();
+        ~DiscoManager();
 };
 
 #endif

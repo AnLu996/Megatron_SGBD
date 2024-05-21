@@ -1,4 +1,4 @@
-#include "controlador.h"
+#include "discoManager.h"
 
 #include <iostream>
 #include <string>
@@ -8,13 +8,13 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-Controlador::Controlador() : disco(0, 0, 0, 0, 0), freeSpaceMap(nullptr) {
+DiscoManager::DiscoManager() : disco(0, 0, 0, 0, 0), freeSpaceMap(nullptr) {
 
 
 }
 
 
-Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo), cantSectoresxBloque(sectoresxBloque) {
+DiscoManager::DiscoManager(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipo(tipo), cantSectoresxBloque(sectoresxBloque) {
     this->totalSectores = nroPlatos * nroPistas * nroSectores;
     this-> cantBloques = this->totalSectores / sectoresxBloque;
 
@@ -24,7 +24,7 @@ Controlador::Controlador (bool tipo, int nroPlatos, int nroPistas, int nroSector
     }
 }
 
-void Controlador::getInformacion() {
+void DiscoManager::getInformacion() {
     std::cout << "------------------------------------------------------" << std::endl;
     disco.getTamañoTotal();
     std::cout << "La cantidad de bloques es: " << disco.getCantidadBloques() << std::endl;
@@ -32,11 +32,11 @@ void Controlador::getInformacion() {
     std::cout << "------------------------------------------------------" << std::endl;
 }
 
-void Controlador::setLongitudRegistro(int longitud) {
+void DiscoManager::setLongitudRegistro(int longitud) {
     this->longitudRegistro = longitud;
 }
 
-void Controlador::crearEsquema() {
+void DiscoManager::crearEsquema() {
     std::string carpetaSectores = RUTA_BASE + "\\Sectores" ;
     fs::remove_all(carpetaSectores);
     fs::create_directories(carpetaSectores);
@@ -67,7 +67,7 @@ void Controlador::crearEsquema() {
     std::cout << "La estructura del disco ha sido creada exitosamente." << std::endl;
 }
 
-void Controlador::configurarDirectorio() {
+void DiscoManager::configurarDirectorio() {
     std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
     if (!diccionarioFile.is_open()) {
         std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
@@ -93,12 +93,12 @@ void Controlador::configurarDirectorio() {
     diccionarioFile.close();
 }
 
-int Controlador::getEspacioLibreBloque(int bloque) {
+int DiscoManager::getEspacioLibreBloque(int bloque) {
     return freeSpaceMap[bloque-1];
 }
 
 
-void Controlador::updateEspacioLibreBloque(int bloque, int espacioUtilizado) {
+void DiscoManager::updateEspacioLibreBloque(int bloque, int espacioUtilizado) {
     freeSpaceMap[bloque-1] -= espacioUtilizado;
 }
 
@@ -231,7 +231,7 @@ void Controlador::crearCarpeta(const std::string& carpeta) {
     }
 }*/
 
-Controlador::~Controlador() {
+DiscoManager::~DiscoManager() {
     delete[] freeSpaceMap;
 
     std::string pathBloque = RUTA_BASE + "\\Bloques";

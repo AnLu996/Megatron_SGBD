@@ -1,6 +1,6 @@
 #include "megatron.h"
 #include "disco.h"
-#include "controlador.h"
+#include "discoManager.h"
 
 #include <iostream>
 #include <string>
@@ -804,7 +804,7 @@ int main() {
 					//Controlador controlador;
 
 					if(answer == 'S' || answer == 's') {
-						Controlador controlador(option, 3, 6, 10, 300,20);
+						DiscoManager controlador(option, 3, 6, 10, 300,20);
 						controlador.crearEsquema();
 						controlador.configurarDirectorio();
 					}
@@ -829,7 +829,7 @@ int main() {
 						int sectoresxBloque;
 						std::cin >> sectoresxBloque;
 						
-						Controlador controlador(option, nroPlatos, nroPistas, nroSectores, bytesxSector,sectoresxBloque);
+						DiscoManager controlador(option, nroPlatos, nroPistas, nroSectores, bytesxSector,sectoresxBloque);
 						controlador.crearEsquema();
 						controlador.configurarDirectorio();
 					}
