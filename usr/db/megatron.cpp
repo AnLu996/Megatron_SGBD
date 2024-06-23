@@ -15,20 +15,22 @@
     str = str.substr(first, (last - first + 1));
 }*/
 
-Megatron::Megatron() {
-    this->rutaBase = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\";
-    this->nEsquema = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\esquema.txt";
+Megatron::Megatron() : controladorDisco(false, 0, 0, 0, 0, 0) {
 
-    std::ifstream archivo(nEsquema);
+}
+Megatron::Megatron(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque)
+    : controladorDisco(tipo, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque) {
     
+    this->nEsquema = RUTA_BASE + std::string("\\esquema.txt");
+    
+    std::ifstream archivo(nEsquema);
     if (!archivo.good()) {
-        std::ofstream nuevoArchivo;
-        nuevoArchivo.open(nEsquema);
+        std::ofstream nuevoArchivo(nEsquema);
         if (nuevoArchivo.is_open()) {
             nuevoArchivo.close();
             std::cout << "El archivo ha sido creado." << std::endl;
         } else {
-            std::cout << "Error al crear el archivo." << std::endl;
+            std::cerr << "Error al crear el archivo." << std::endl;
         }
     }
     archivo.close();
@@ -39,8 +41,8 @@ void Megatron::setEsquema(const std::string nombreEsquema){
 }
 
 void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
-    std::cout << "Ruta completa: " << rutaBase + file + ".csv" << std::endl;
-    std::ifstream readFile(rutaBase + file + ".csv");
+    std::cout << "Ruta completa: " << RUTA_BASE + file + ".csv" << std::endl;
+    std::ifstream readFile(RUTA_BASE + file + ".csv");
     std::ofstream writeEsquema(this->nEsquema, std::ios::app);
     std::string esquema;
     int i = 0;
@@ -78,7 +80,7 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
 
         if (cant == 0) {
             while (std::getline(readFile, lineaArchivo)) {
-                std::string atributo;
+                /*std::string atributo;
                 std::string registro;
                 bool is_string = false;
 
@@ -101,12 +103,13 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
                     }
                 }
                 registro += atributo;
-                writeRelacion << registro << std::endl;         
+                writeRelacion << registro << std::endl;  */       
+                controladorDisco.usarLongitudFija(lineaArchivo);
             }
         } else {
-            for (int j = 0; j < cant; j++) {  // Cambiado el nombre de la variable i a j
-                std::getline(readFile, lineaArchivo);
-                std::string atributo;
+            int count = 0;
+            while (std::getline(readFile, lineaArchivo)) { 
+                /*std::string atributo;
                 std::string registro;
                 bool is_string = false;
 
@@ -129,14 +132,17 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
                     }
                 }
                 registro += atributo;
-                writeRelacion << registro << std::endl; 
+                writeRelacion << registro << std::endl; */
+                controladorDisco.usarLongitudFija(lineaArchivo);
+                if ( count == cant) 
+                    break;
             }
         }
 
         writeRelacion.close();
         readFile.close();
 
-        std::cout << "Esquema agregado y relación creada exitosamente\n";
+        std::cout << "Esquema agregado y relacion creada exitosamente\n";
     }
     else {
         std::cerr << "Error al abrir el archivo." << std::endl;
@@ -208,10 +214,10 @@ void Megatron::ingresarRelacionManual(bool tipo) {
     std::string dato;
 
     /*if (!tipo) {
-        this -> esquemaActual = crearArchivoRelacion(this->rutaBase + this->esquemaActual + ".txt");
+        this -> esquemaActual = crearArchivoRelacion(RUTA_BASE + this->esquemaActual + ".txt");
     }*/
 
-    std::ofstream writeFile(rutaBase + this->esquemaActual + ".txt", std::ios::app);
+    std::ofstream writeFile(RUTA_BASE + this->esquemaActual + ".txt", std::ios::app);
     if (!writeFile.is_open()) {
         std::cerr << "Error al abrir el archivo de relación\n";
         return;
@@ -263,9 +269,9 @@ void Megatron::ingresarDesdeArchivoCsv(const std::string file, int cant) {
     int i = 0;
     
 
-    std::ofstream writeRelacion(this->rutaBase + this->esquemaActual, std::ios::app);
-    std::ifstream readFile(this->rutaBase + this->nEsquema);
-    std::ifstream archivo(this->rutaBase + file);
+    std::ofstream writeRelacion(RUTA_BASE + this->esquemaActual, std::ios::app);
+    std::ifstream readFile(RUTA_BASE + this->nEsquema);
+    std::ifstream archivo(RUTA_BASE + file);
 
     if (cant == 0) {
         while(std::getline(readFile, lineaArchivo)) {
@@ -292,6 +298,9 @@ void Megatron::ingresarDesdeArchivoCsv(const std::string file, int cant) {
                     atributo.push_back(c);
                 }
             }
+
+            // llenarSectorLongitudFija(lineaArchivo);
+            
             registro += atributo;
             writeRelacion << registro << std::endl;         
         }
@@ -333,7 +342,7 @@ void Megatron::ingresarDesdeArchivoCsv(const std::string file, int cant) {
 std::string Megatron::crearArchivoRelacion(std::string Esquema) {
     std::cout << "Creando relacion #" << Esquema << "...." << std::endl;
 
-    std::string nombreRelacion = rutaBase + Esquema + ".txt";
+    std::string nombreRelacion = RUTA_BASE + Esquema + ".txt";
     std::ofstream archivo(nombreRelacion);
     if (!archivo.is_open()) {
         std::cerr << "Error al abrir el archivo " << nombreRelacion << std::endl;
@@ -346,7 +355,7 @@ std::string Megatron::crearArchivoRelacion(std::string Esquema) {
         
 /*bool Megatron::eliminarRegistro(std::string query) {
     std::string nombreArchivo = this->esquemaActual;
-    std::ifstream archivoIn(this->rutaBase + this->esquemaActual + ".txt");
+    std::ifstream archivoIn(RUTA_BASE + this->esquemaActual + ".txt");
     if (!archivoIn.is_open()) {
         std::cerr << "Error al abrir el archivo." << std::endl;
         return false;

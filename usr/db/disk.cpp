@@ -1,10 +1,10 @@
-#include "disco.h"
+#include "disk.h"
 
 #include <iostream>
 #include <fstream>
 #include <string>
 
-Disco::Disco(int platos, int pistas, int sectores, int tamañoSector, int tamañoBloque) {
+Disk::Disk(int platos, int pistas, int sectores, int tamañoSector, int tamañoBloque) {
     this->nroPlatos = platos;
     this->nroSuperficies = 2;
     this->nroPistas = pistas;
@@ -14,7 +14,7 @@ Disco::Disco(int platos, int pistas, int sectores, int tamañoSector, int tamañ
     this->rutaBase = "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\"; 
 }
 
-void Disco::getTamañoTotal() {
+void Disk::printTamañoTotal() {
     std::cout << "Nro. Platos: " << this->nroPlatos << std::endl;
     std::cout << "Nro. Superficies: " << this->nroSuperficies << std::endl;
     std::cout << "Nro. Pistas: " << this->nroPistas << std::endl;
@@ -23,10 +23,10 @@ void Disco::getTamañoTotal() {
     std::cout << "Sectores x Bloque: " << this->sectoresxBloque << std::endl;
 
     long long int total = static_cast<long long int>(this->nroPlatos) *
-                          this->nroSuperficies *
-                          this->nroPistas *
-                          this->nroSectores *
-                          this->bytesxSector;
+                            this->nroSuperficies *
+                            this->nroPistas *
+                            this->nroSectores *
+                            this->bytesxSector;
 
     std::cout << "Tamanio Total: " << total << std::endl;
 }
@@ -35,22 +35,37 @@ void Disco::getTamañoTotal() {
     return getTamañoTotal() - espacioOcupado;
 }*/
 
-int Disco::getCantidadBloques() {
-    int cantidadBloques = nroPlatos * nroPistas * nroSectores * (bytesxSector / sectoresxBloque);
+int Disk::getCantidadPlatos() {
+    return this->nroPlatos;
+}
+
+int Disk::getCantidadPistas() {
+    return this->nroPistas;
+}
+
+int Disk::getCantidadSectores() {
+    return this->nroSectores;
+}
+
+int Disk::getBytesxSector() {
+    return this->bytesxSector;
+}
+
+int Disk::getCantidadBloques() {
+    int cantidadBloques = getTotalSectores() / sectoresxBloque;
     return cantidadBloques;
 }
 
-int Disco::getCantidadSectores() {
-    int cantidadSectores = this->nroSectores;
-    return cantidadSectores;
+int Disk::getCantidadSectoresxBloque() {
+    return this->sectoresxBloque;
 }
 
-int Disco::getCantidadSectoresBloque() {
-    int cantidadSectoresxBloque = this->sectoresxBloque;
-    return cantidadSectoresxBloque;
-}
-
-int Disco::getTamañoBloque() {
+int Disk::getTamañoBloque() {
     int tamaño = this->bytesxSector * this->sectoresxBloque;
     return tamaño;
+}
+
+int Disk::getTotalSectores() {
+    int totalSectores = this->nroPlatos * this->nroPistas * this->nroSectores * 2;
+    return totalSectores;
 }

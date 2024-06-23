@@ -1,6 +1,7 @@
 #include "megatron.h"
 #include "disco.h"
-#include "discoManager.h"
+#include "diskManager.h"
+#include "extras.h"
 
 #include <iostream>
 #include <string>
@@ -725,144 +726,86 @@ bool consulta(std::string& query) {
 	return true;
 }
 
-int calcularTamanioRegistro(const std::string& registro) {
-    std::istringstream ss(registro);
-    std::string atributo;
-    int tamanioRegistro = 0;
-
-    while (std::getline(ss, atributo, ',')) {
-        if (atributo.front() == '"' && atributo.back() == '"') {
-            atributo = atributo.substr(1, atributo.size() - 2);
-        }
-
-        if (atributo == "char" || atributo == "bool") {
-            tamanioRegistro += 1;
-        } else if (atributo == "float" || atributo == "int") {
-            tamanioRegistro += 4;
-        } else if (atributo == "double") {
-            tamanioRegistro += 8;
-        } else if (atributo == "string") {
-            tamanioRegistro += atributo.length();
-        }
-    }
-
-    return tamanioRegistro;
-}
-
-int obtenerTamanioMaximo(const std::string& nombreArchivo) {
-    std::ifstream archivo(nombreArchivo);
-    std::string linea;
-    std::getline(archivo, linea);
-    int tamanioMaximo = 0;
-
-    while (std::getline(archivo, linea)) {
-        int tamanioRegistro = calcularTamanioRegistro(linea);
-        if (tamanioRegistro > tamanioMaximo) {
-            tamanioMaximo = tamanioRegistro;
-        }
-    }
-
-    return tamanioMaximo;
-}
-
 int main() {
     int resp;
     int option;
-	bool continuar = true;
+    bool tipoRegistro;
+    bool continuar = true;
     std::string nombreFile;
+
+    Megatron dataBase;
 
     do {
         std::cout << "\n\n*********************************************************" << std::endl;
         std::cout << "--------- MENU SISTEMA GESTOR DE BASE DE DATOS ----------" << std::endl;
         std::cout << "1. Crear disco" << std::endl;
-		std::cout << "2. Crear esquema" << std::endl;
+        std::cout << "2. Crear esquema" << std::endl;
         std::cout << "3. Crear relacion" << std::endl;
         std::cout << "4. Agregar registro a relacion" << std::endl;
         std::cout << "5. Realizar consultas" << std::endl;
         std::cout << "6. Salir" << std::endl;
         std::cout << "\tIngresa una opcion: ";
-        std::cin>>resp;
-		Megatron dataBase;
+        std::cin >> resp;
 
-        switch (resp)
-        {
-            case 1:
-			{
-				std::cout << "\n*********************************************************" << std::endl;
-				std::cout << "Desea crear disco por DEFAULT? (S/N)" << std::endl;
-				char answer;
-				std::cin >> answer;
+        switch (resp) {
+            case 1: {
+                std::cout << "\n*********************************************************" << std::endl;
+                std::cout << "Desea crear disco por DEFAULT? (S/N)" << std::endl;
+                char answer;
+                std::cin >> answer;
 
-				std::cin.ignore();
-				if(answer == 'S' || answer == 's' || answer == 'N' || answer == 'n' ) {
-					/*std::cout << "\nEscoja el tipo de resgistro:" << std::endl;
-					std::cout << "0. Longitud Fija" << std::endl;
-					std::cout << "1. Longitud Variable" << std::endl;
-					std::cin >> option;*/
-					option = false;
+                std::cin.ignore();
+                if (answer == 'S' || answer == 's' || answer == 'N' || answer == 'n') {
+                    tipoRegistro = false;
 
-					//Controlador controlador;
+                    if (answer == 'S' || answer == 's') {
+                        Megatron dataBase(tipoRegistro, 3, 6, 10, 300, 20); // Adjust parameters as needed
+                        dataBase.controladorDisco.createStructureDisk();
+                        //dataBase.controladorDisco.configurarDirectorio();
+                    } else if (answer == 'N' || answer == 'n') {
+                        int nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque;
 
-					if(answer == 'S' || answer == 's') {
-						DiscoManager controlador(option, 3, 6, 10, 300,20);
-						controlador.crearEsquema();
-						controlador.configurarDirectorio();
-					}
-					else if(answer == 'N' || answer == 'n') {
-						std::cout << "Ingresa la cantidad de platos: ";
-						int nroPlatos;
-						std::cin >> nroPlatos;
-						
-						std::cout << "Ingresa la cantidad de pistas x plato: ";
-						int nroPistas;
-						std::cin >> nroPistas;
+                        std::cout << "Ingresa la cantidad de platos: ";
+                        std::cin >> nroPlatos;
+                        std::cout << "Ingresa la cantidad de pistas x plato: ";
+                        std::cin >> nroPistas;
+                        std::cout << "Ingresa la cantidad de sectores x pista: ";
+                        std::cin >> nroSectores;
+                        std::cout << "Ingresa la cantidad de bytes x sector: ";
+                        std::cin >> bytesxSector;
+                        std::cout << "Ingresa la cantidad de sectores x bloque: ";
+                        std::cin >> sectoresxBloque;
+                        
+                        Megatron database(tipoRegistro, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque); // Ajusta tamRegistro según sea necesario
+                        dataBase.controladorDisco.createStructureDisk();
+                        //dataBase.controladorDisco.configurarDirectorio();
+                    }
+                }
+                break;
+            }
+            case 2: {
+                std::cout << "\n*********************************************************" << std::endl;
+                std::cout << "1. Generar esquema a partir de archivo .CSV y crear relacion" << std::endl;
+                std::cout << "2. Crear un esquema nuevo" << std::endl;                
+                std::cout << "\tIngresa una opcion: ";
+                std::cin >> option;
 
-						std::cout << "Ingresa la cantidad de sectores x pista: ";
-						int nroSectores;
-						std::cin >> nroSectores;
-
-						std::cout << "Ingresa la cantidad de bytes x sector: ";
-						int bytesxSector;
-						std::cin >> bytesxSector;
-
-						std::cout << "Ingresa la cantidad de sectores x bloque: ";
-						int sectoresxBloque;
-						std::cin >> sectoresxBloque;
-						
-						DiscoManager controlador(option, nroPlatos, nroPistas, nroSectores, bytesxSector,sectoresxBloque);
-						controlador.crearEsquema();
-						controlador.configurarDirectorio();
-					}
-				}
-				break;
-			}
-            case 2:
-			{
-				std::cout << "\n*********************************************************" << std::endl;
-				std::cout << "1. Generar esquema a partir de archivo .CSV y crear relacion" << std::endl;
-				std::cout << "2. Crear un esquema nuevo" << std::endl;                
-				std::cout << "\tIngresa una opcion: ";
-				std::cin >> option;
-
-				if (option == 1) {
-					std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
-					std::cout << "\n\tIndica el nombre del archivo a leer: ";
-					std::getline(std::cin, nombreFile);
-					std::cin.ignore();
-					std::cout << "\n\tElige la cantidad de registros a llenar (0 = todo): ";
-					int cant;
-					std::cin >> cant;
-					std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'cant'
-					dataBase.crearEsquemaDesdeCsv(nombreFile, cant);
-					break;
-				}
-				else if (option == 2) {
-					std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
-					dataBase.agregarEsquemaManual();
-					break;
-				}
-				break; 
-			}
+                if (option == 1) {
+                    std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
+                    std::cout << "\n\tIndica el nombre del archivo a leer: ";
+                    std::getline(std::cin, nombreFile);
+                    //int tamañoRegistro = calcularTamanioRegistro(nombreFile);
+                    //dataBase.controladorDisco.setLongitudRegistro(tamañoRegistro);
+                    std::cout << "\n\tElige la cantidad de registros a llenar (0 = todo): ";
+                    int cant;
+                    std::cin >> cant;
+                    dataBase.crearEsquemaDesdeCsv(nombreFile, cant);
+                } else if (option == 2) {
+                    std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
+                    dataBase.agregarEsquemaManual();
+                }
+                break; 
+            }
             case 3:
             {                
                 std::string nombreEsquema;

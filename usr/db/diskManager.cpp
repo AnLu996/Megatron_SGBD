@@ -4,34 +4,46 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include <iomanip>
 #include <filesystem>
 namespace fs = std::filesystem;
 
-DiskManager::DiskManager() : disco(0, 0, 0, 0, 0), freeSpaceMap(nullptr) {
+std::string cabeceraToString(const CabeceraSector& cabecera);
+void eliminarLinea(const std::string& archivoEntrada, const std::string& archivoSalida, int numLineaEliminar);
+void reemplazarCabecera(const std::string& archivo, const CabeceraSector& nuevaCabecera);
+
+std::string removerPrimerElemento(const std::string& cadena);
 
 
-}
+DiskManager::DiskManager() : disco(0, 0, 0, 0, 0) {}
 
-
-DiskManager::DiskManager(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque, int tamRegistro) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipoLongitud(tipo), longitudRegistro(tamRegistro) {
+DiskManager::DiskManager(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque) : disco(nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), tipoLongitud(tipo), tipoCampo(nullptr), freeSpaceInicial(nullptr), freeSpaceFinal(nullptr), fullSpaceInicial(nullptr), fullSpaceFinal(nullptr) {
     this->platoAct = 1;
     this->superfAct = 'A';
     this->pistaAct = 1;
     this->sectorAct = 1;
     this->bloqueAct = 1;
 
-    if (!tipo) {
-        this->registrosxSector = disco.getBytesxSector() / this->longitudRegistro;
-    }    
-
-    freeSpaceMap = new int[sectoresxBloque];
-    for (int i = 0; i < disco.getCantidadBloques(); i++) {
-        freeSpaceMap[i] = disco.getTamañoBloque();
-    }
+    //MOMENTANEO
+    this->longitudRegistro = 50;
 }
 
-void DiskManager::getInformacionBloque() {
+// =============================================  GENERAL  ==============================================================
+
+void DiskManager::showInformation() {
+    std::cout << "\t+-----------------------------+-------------------+" << std::endl;
+    std::cout << "\t| Concepto                    | Cantidad          |" << std::endl;
+    std::cout << "\t+-----------------------------+-------------------+" << std::endl;
+    std::cout << "\t| Cantidad de platos          | " << std::setw(17) << disco.getCantidadPlatos() << " |" << std::endl;
+    std::cout << "\t| Cantidad de pistas x plato  | " << std::setw(17) << disco.getCantidadPistas() << " |" << std::endl;
+    std::cout << "\t| Cantidad de sectores x pista| " << std::setw(17) << disco.getCantidadSectores() << " |" << std::endl;
+    std::cout << "\t| Cantidad de bytes x sector  | " << std::setw(17) << disco.getBytesxSector() << " |" << std::endl;
+    std::cout << "\t| Cantidad total de bloques   | " << std::setw(17) << disco.getCantidadBloques() << " |" << std::endl;
+    std::cout << "\t+-----------------------------+-------------------+" << std::endl;
+}
+
+
+void DiskManager::getBlockInformation() {
     std::cout << "------------------------------------------------------" << std::endl;
     disco.printTamañoTotal();
     std::cout << "La cantidad de bloques es: " << disco.getCantidadBloques() << std::endl;
@@ -39,11 +51,7 @@ void DiskManager::getInformacionBloque() {
     std::cout << "------------------------------------------------------" << std::endl;
 }
 
-void DiskManager::setLongitudRegistro(int longitud) {
-    this->longitudRegistro = longitud;
-}
-
-void DiskManager::crearEstructura() {
+void DiskManager::createStructureDisk() {
 
     int plato = 1;
     char superf = 'A';
@@ -53,7 +61,7 @@ void DiskManager::crearEstructura() {
     int temp = 1;
 
     // * Crear file sectores
-    std::string carpetaSectores = RUTA_BASE + "\\Sectores"; 
+    std::string carpetaSectores = RUTA_BASE + std::string("\\Sectores"); 
     fs::remove_all(carpetaSectores); // Remueve carpetas anteriores con el mismo nombre    
     fs::create_directories(carpetaSectores); // Crea la carpeta directorios
 
@@ -82,7 +90,7 @@ void DiskManager::crearEstructura() {
     sector = 1;
 
     // *Crear los files de bloques
-    std::string carpetaBloques = RUTA_BASE + "\\Bloques" ;
+    std::string carpetaBloques = RUTA_BASE + std::string("\\Bloques") ;
     fs::remove_all(carpetaBloques);
     fs::create_directories(carpetaBloques);
 
@@ -107,35 +115,361 @@ void DiskManager::crearEstructura() {
     std::cout << "La estructura del disco ha sido creada exitosamente." << std::endl;
 }
 
-/*void DiskManager::configurarDirectorio() {
-    std::ofstream diccionarioFile(RUTA_BASE + "directorio.txt");
-    if (!diccionarioFile.is_open()) {
-        std::cerr << "Error al abrir el archivo directorio.txt" << std::endl;
+
+
+
+
+void DiskManager::showSectorContent(int plato, char superficie, int pista, int sector) {
+    std::string carpetaSectores = RUTA_BASE + std::string("Sectores\\");
+    std::string archivoSector = carpetaSectores + std::to_string(plato) + "-" + superficie + "-" + std::to_string(pista) + "-" + std::to_string(sector) + ".txt";
+    std::ifstream archivo(archivoSector);
+
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo." << std::endl;
         return;
     }
-    
-    int bloque = 1;
-    int totalSectores = this->totalSectores;
 
-    while (totalSectores > 0 && bloque <= totalSectores) { // Añadimos la condición bloque <= totalSectores
-        diccionarioFile << std::to_string(bloque) + '#';
-        for(int sector = 1; sector <= this->cantSectoresxBloque; sector++) { // Cambiamos sectores++ a sector++
-            diccionarioFile << std::to_string(sector);
-            if (sector < cantSectoresxBloque || totalSectores > 1) {
-                diccionarioFile << ',';
-            }
-            totalSectores--;
-        }
-        diccionarioFile << std::endl;
-        bloque++;
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        std::cout << linea << std::endl;
     }
 
-    diccionarioFile.close();
-}*/
+    archivo.close();
+}
 
 
+// ============================================ HEAP FILE ===================================================
 
-void DiskManager::usarLongitudFija(std::string lineaArchivo) {
+/*
+    std::unordered_map<int, std::tuple<int, char, int>> sectores1 = {
+        {1, std::make_tuple(0, 'A', 0)},
+        {2, std::make_tuple(0, 'A', 1)},
+        {3, std::make_tuple(0, 'A', 2)}
+    };
+
+*/
+void DiskManager::insertBlocktoFreeHeapFile(int numBloque, int espLibre, const std::unordered_map<int, std::tuple<int, char, int>>& sectores) {
+    Nodo* nuevoNodo = new Nodo(numBloque, espLibre);
+    nuevoNodo->sectores = sectores;
+
+    if (!this->freeSpaceInicial) {
+        this->freeSpaceInicial = this->freeSpaceFinal = nuevoNodo;
+    } else {
+        this->freeSpaceFinal->next = nuevoNodo;
+        nuevoNodo->prev = this->freeSpaceFinal;
+        this->freeSpaceFinal = nuevoNodo;
+    }
+}
+
+void DiskManager::insertBlocktoFullHeapFile(int numBloque, int espLibre, const std::unordered_map<int, std::tuple<int, char, int>>& sectores) {
+    Nodo* nuevoNodo = new Nodo(numBloque, espLibre);
+    nuevoNodo->sectores = sectores;
+
+    if (!this->fullSpaceInicial) {
+        this->fullSpaceInicial = this->fullSpaceFinal = nuevoNodo;
+    } else {
+        this->fullSpaceFinal->next = nuevoNodo;
+        nuevoNodo->prev = this->fullSpaceFinal;
+        this->freeSpaceFinal = nuevoNodo;
+    }
+}
+
+void DiskManager::showFullHeapFile() {
+    Nodo* actual = fullSpaceInicial;
+    while (actual) {
+        printBlockInformation(actual);
+        actual = actual->next;
+    }
+}
+
+void DiskManager::printBlockInformation(Nodo* nodo) {
+    std::cout << "\tBloque: " << nodo->numeroBloque
+                << ", Espacio Libre: " << nodo->espacioLibre
+                << ", Sectores: ";
+    for (const auto& [idSector, tupla] : nodo->sectores) {
+        auto [plato, superficie, pista] = tupla;
+        std::cout << "(" << idSector << ", " << plato << ", " << superficie << ", " << pista << ") ";
+    }
+    std::cout << std::endl;
+}
+
+void DiskManager::printBlockHeapFile(int numBloque) {
+    Nodo* actual = this->freeSpaceInicial;
+    while (actual) {
+        if (actual->numeroBloque == numBloque) {
+            printBlockInformation(actual);
+            return;
+        }
+        actual = actual->next;
+    }
+
+    actual = this->fullSpaceInicial;
+    while (actual) {
+        if (actual->numeroBloque == numBloque) {
+            printBlockInformation(actual);
+            return;
+        }
+        actual = actual->next;
+    }
+
+    std::cout << "Bloque con numero " << numBloque << " no encontrado." << std::endl;
+}
+
+Nodo* DiskManager::searchFreeSpace(int numBloque) {
+    Nodo* actual = this->freeSpaceInicial;
+    while (actual) {
+        if (actual->numeroBloque == numBloque) {
+            return actual;
+        }
+        actual = actual->next;
+    }
+    return nullptr;  // Devuelve nullptr si no encuentra el bloque
+}
+
+Nodo* DiskManager::searchFullSpace(int numBloque) {
+    Nodo* actual = this->fullSpaceInicial;
+    while (actual) {
+        if (actual->numeroBloque == numBloque) {
+            return actual;
+        }
+        actual = actual->next;
+    }
+    return nullptr;  // Devuelve nullptr si no encuentra el bloque
+}
+
+Nodo* DiskManager::searchBlockHeapFile(int numBloque) {
+    Nodo* nodo = searchFreeSpace(numBloque);
+    if (nodo) {
+        return nodo;
+    }
+    
+    nodo = searchFullSpace(numBloque);
+    if (nodo) {
+        return nodo;
+    }
+
+    std::cout << "Bloque con numero " << numBloque << " no encontrado." << std::endl;
+    return nullptr;  // Devuelve nullptr si no encuentra el bloque
+}
+
+void DiskManager::decreaseSpaceofBlock(int numBloque) {
+    Nodo* bloque = searchBlockHeapFile(numBloque);
+
+    if (!bloque) {
+        std::cout << "Bloque con numero " << numBloque << " no encontrado." << std::endl;
+        return;
+    }
+
+    bloque->espacioLibre = bloque->espacioLibre - longitudRegistro;
+    
+    if(bloque->espacioLibre < longitudRegistro)
+        moveBlockFreeToFull(bloque);
+}
+
+void DiskManager::increaseSpaceofBlock(int numBloque) {
+    Nodo* bloque = searchBlockHeapFile(numBloque);
+
+    if (!bloque) {
+        std::cout << "Bloque con numero " << numBloque << " no encontrado." << std::endl;
+        return;
+    }
+
+    bloque->espacioLibre = bloque->espacioLibre + longitudRegistro;
+    if(searchFullSpace(bloque->numeroBloque) && bloque->espacioLibre >= longitudRegistro)
+        moveBlockFullToFree(bloque);
+}
+
+void DiskManager::deleteBlockHeapFile(Nodo*& head, Nodo*& tail, Nodo* nodo) {
+    if (!nodo) return;
+
+    if (nodo->prev) {
+        nodo->prev->next = nodo->next;
+    } else {
+        head = nodo->next;
+    }
+
+    if (nodo->next) {
+        nodo->next->prev = nodo->prev;
+    } else {
+        tail = nodo->prev;
+    }
+
+    nodo->prev = nullptr;
+    nodo->next = nullptr;
+}
+
+void DiskManager::moveBlockFreeToFull(Nodo* nodo) {
+    deleteBlockHeapFile(this->freeSpaceInicial, this->freeSpaceFinal, nodo);
+
+    // Insertar nodo al final de FullSpace
+    if (!fullSpaceInicial) {
+        fullSpaceInicial = fullSpaceFinal = nodo;
+    } else {
+        fullSpaceFinal->next = nodo;
+        nodo->prev = fullSpaceFinal;
+        fullSpaceFinal = nodo;
+    }
+
+    nodo->next = nullptr;
+}
+
+void DiskManager::moveBlockFullToFree(Nodo* nodo) {
+
+    deleteBlockHeapFile(this->fullSpaceInicial, this->fullSpaceFinal, nodo);
+
+    if (!this->freeSpaceInicial) {
+        this->freeSpaceInicial = this->freeSpaceFinal = nodo;
+    } else {
+        nodo->next = this->freeSpaceInicial;
+        this->freeSpaceInicial->prev = nodo;
+        this->freeSpaceInicial = nodo;
+    }
+
+    nodo->prev = nullptr;
+}
+
+void DiskManager::vaciarHeapFile(Nodo*& head, Nodo*& tail) {
+    Nodo* actual = head;
+    while (actual) {
+        Nodo* siguiente = actual->next;
+        delete actual;
+        actual = siguiente;
+    }
+    head = nullptr;
+    tail = nullptr;
+}
+
+void DiskManager::vaciarHeapFile() {
+    vaciarHeapFile(this->freeSpaceInicial, this->freeSpaceFinal);
+    vaciarHeapFile(this->fullSpaceInicial, this->fullSpaceFinal);
+}
+
+void DiskManager::saveHeapFile() {
+    std::ofstream archivo(RUTA_BASE + std::string("heapFile.txt"));
+
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo." << std::endl;
+        return;
+    }
+
+    saveInformationInFile(this->freeSpaceInicial, archivo);
+    saveInformationInFile(this->fullSpaceInicial, archivo);
+
+    archivo.close();
+}
+
+void DiskManager::saveInformationInFile(Nodo* head, std::ofstream& archivo) {
+    Nodo* actual = head;
+    while (actual) {
+        archivo << actual->numeroBloque << " " << actual->espacioLibre << " ";
+
+        for (const auto& [idSector, tupla] : actual->sectores) {
+            auto [plato, superficie, pista] = tupla;
+            archivo << idSector << ":" << plato << ":" << superficie << ":" << pista << ",";
+        }
+
+        archivo << std::endl;
+        actual = actual->next;
+    }
+}
+
+void DiskManager::recoverInformationFromHeapFile() {
+    std::ifstream archivo(RUTA_BASE + std::string("heapFile.txt"));
+
+    if (!archivo.is_open()) {
+        std::cerr << "Error al abrir el archivo." << std::endl;
+        return;
+    }
+
+    vaciarHeapFile(); // Eliminar nodos existentes antes de recuperar la información
+
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        std::istringstream iss(linea);
+        char lista;
+        int numBloque, espLibre;
+        char separador;
+        std::unordered_map<int, std::tuple<int, char, int>> sectores;
+
+        iss >> lista >> numBloque >> espLibre;
+
+        while (iss >> numBloque >> separador) {
+            int plato, superficie, pista;
+            char separador2;
+            iss >> plato >> separador2 >> superficie >> separador2 >> pista >> separador;
+            sectores[numBloque] = std::make_tuple(plato, superficie, pista);
+        }
+
+        if (lista == 'F') {
+            insertBlocktoFreeHeapFile(numBloque, espLibre, sectores); // Inserta en FreeSpace
+        } else if (lista == 'S') {
+            insertBlocktoFullHeapFile(numBloque, espLibre, sectores); // Inserta en FullSpace
+        }
+    }
+
+    archivo.close();
+}
+
+
+// ============================================= LONGITUD FIJA ==========================================================
+
+
+/*
+    * Calcula el tamaño de un registro por esquema (LONGITUD FIJA)
+*/
+void DiskManager::getSizeScheme(const std::string& esquema) {
+    std::stringstream ss(esquema);
+    std::string campo;
+    std::string tipo;
+
+    int size = 0;
+    int i = 0;
+
+    // Contar el número de campos para dimensionar el arreglo dinámico
+    std::stringstream ssCount(esquema);
+    std::string temp;
+    int count = 0;
+    while (std::getline(ssCount, temp, '#')) {
+        count++;
+    }
+    count /= 2; // Dividir por 2 ya que hay pares de campo y tipo
+
+    tipoCampo = new int[count];
+
+    // Parsear el esquema
+    while (std::getline(ss, campo, '#') && std::getline(ss, tipo, '#')) {
+        if (tipo == "int") {
+            tipoCampo[i] = sizeof(int);
+        } else if (tipo == "char") {
+            tipoCampo[i] = sizeof(char);
+        } else if (tipo == "float") {
+            tipoCampo[i] = sizeof(float);
+        } else if (tipo == "double") {
+            tipoCampo[i] = sizeof(double);
+        } else if (tipo == "bool") {
+            tipoCampo[i] = sizeof(bool);
+        } else if (tipo.substr(0, 7) == "varchar") {
+            size_t pos1 = tipo.find('(');
+            size_t pos2 = tipo.find(')');
+            if (pos1 != std::string::npos && pos2 != std::string::npos && pos2 > pos1 + 1) {
+                int length = std::stoi(tipo.substr(pos1 + 1, pos2 - pos1 - 1));
+                tipoCampo[i] = length * sizeof(char);
+            }
+        }
+        ++i;
+    }
+
+    // Imprimir para verificar los tamaños de los tipos de datos
+    for (int j = 0; j < i; ++j) {
+        std::cout << "Type size at index " << j << ": " << tipoCampo[j] << " bytes\n";
+    }
+}
+
+void DiskManager::setLongitudRegistro(int longitud) {
+    this->longitudRegistro = longitud;
+}
+
+/*void DiskManager::usarLongitudFija(std::string lineaArchivo) { //lineaArchivo = lineaRegistroInterfaz
     /**
     Verificar si el bloque tiene espacio
         - Crear archivo de arreglo
@@ -143,7 +477,7 @@ void DiskManager::usarLongitudFija(std::string lineaArchivo) {
     No es así: Actualiza el bloque (bloqueact++;)
     Llena el bloque con la transformación corresponfiente a formato deseado
     * ? llena el sector correspondiente
-    */
+    
 
     int espacioLibre = getEspacioLibreBloque(this->bloqueAct);
     if (espacioLibre <= this->longitudRegistro) {
@@ -155,7 +489,7 @@ void DiskManager::usarLongitudFija(std::string lineaArchivo) {
         std::string registro;
         bool is_string = false;
 
-        std::string archivoBloque = RUTA_BASE + "\\Bloques\\Bloque" + std::to_string(this->bloqueAct) + ".txt";
+        std::string archivoBloque = RUTA_BASE + std::string("\\Bloques\\Bloque") + std::to_string(this->bloqueAct) + ".txt";
         std::ofstream archivoWriteBloque(archivoBloque, std::ios::app);
 
         for (char c : lineaArchivo) {
@@ -187,13 +521,13 @@ void DiskManager::usarLongitudFija(std::string lineaArchivo) {
     actualizarBloque();
 
     this->sectorAct++;
-}
+}*/
 
 void DiskManager::llenarLongitudFija(const std::string& lineaArchivo) {
     bool sectorActualizado = false;
 
     do {
-        std::string archivoSector = RUTA_BASE + "Sectores\\" + std::to_string(this->platoAct) + "-" + this->superfAct + "-" + std::to_string(this->pistaAct) + "-" + std::to_string(this->sectorAct) + ".txt";
+        std::string archivoSector = RUTA_BASE + std::string("Sectores\\") + std::to_string(this->platoAct) + "-" + this->superfAct + "-" + std::to_string(this->pistaAct) + "-" + std::to_string(this->sectorAct) + ".txt";
         std::ifstream archivoReadSector(archivoSector);
 
         if (!archivoReadSector) {
@@ -307,26 +641,11 @@ void DiskManager::actualizarLineaLongitudFija(const std::string& archivoSector, 
 
 //!Por mejorar
 
-/*
-VERIFICAR LA CAPACIDAD DEL BLOQUE USANDO EL FREE SPACE MAP
-
-Verificar si el bloque tiene espacio
-si NO tiene espacio
-    bloque ++
-    lee cabecera y se asigna el primer sector señalado
-
-bloque=- this->longitudRegistro;
-sector++;
-si sector cambia
-    bloque = longitud de sectores sobrantes
-
-
-*/
-void DiskManager::actualizarBloque() {
+/*void DiskManager::actualizarBloque() {
     if(getEspacioLibreBloque(this->bloqueAct)) {
         this->bloqueAct++;
 
-        std::string archivoBloque = RUTA_BASE + "\\Bloques\\Bloque" + std::to_string(this->bloqueAct) + ".txt";
+        std::string archivoBloque = RUTA_BASE + std::string("\\Bloques\\Bloque") + std::to_string(this->bloqueAct) + ".txt";
         std::ifstream file(archivoBloque);
 
         if (!file) {
@@ -342,184 +661,31 @@ void DiskManager::actualizarBloque() {
         std::getline(ss, token, ',');
         this->sectorAct = std::stoi(token);
     } else {
-        this->freeSpaceMap[this->bloqueAct] =- this->longitudRegistro;
+        
+        //this->freeSpaceMap[this->bloqueAct] =- this->longitudRegistro;
     }
-}
+}*/
 
 void DiskManager::actualizarSector() {
     this->sectorAct++;
     std::cout << "Actualizando al siguiente sector: " << sectorAct << std::endl;
 }
 
-std::string removerPrimerElemento(const std::string& cadena) {
-    std::cout << cadena << std::endl;
-    size_t pos = cadena.find(',');
-    if (pos == std::string::npos) {
-        return "";
-    }
-    return cadena.substr(pos + 1);
-}
 
 
 
+// ============================================= LONGITUD VARIABLE  =====================================================
 
 
 
+// ======================================================================================================================
 
-
-
-
-
-
-
-
-
-
-
-
-int DiskManager::getEspacioLibreBloque(int bloque) {
-    return freeSpaceMap[bloque-1];
-}
-
-
-void DiskManager::updateEspacioLibreBloque(int bloque, int espacioUtilizado) {
-    freeSpaceMap[bloque-1] -= espacioUtilizado;
-}
-
-
-
-
-
-
-/*
-
-void Controlador::ingresarLongitudEsquema(std::string esquema, int tamañoRegistro) {
-    std::ifstream fileEsquema(this->rutaBase + "esquema.txt");
-    std::ofstream outputFile(this->rutaBase + "esquema_temp.txt", std::ios::app); // Abre el archivo en modo de escritura al final
-
-    if (!fileEsquema.is_open() || !outputFile.is_open()) {
-        std::cerr << "Error al abrir los archivos." << std::endl;
-        return;
-    }
-
-    std::string lineaEsquema;
-    std::string encabezadoEsquema;
-
-    while (std::getline(fileEsquema, lineaEsquema)) {
-        size_t pos = lineaEsquema.find('#');
-        encabezadoEsquema = lineaEsquema.substr(0, pos);
-        std::istringstream esquema_ss(lineaEsquema);
-        std::string texto;
-        std::getline(esquema_ss, texto, '#');
-        
-        if (encabezadoEsquema == esquema) {
-            // Agregar información adicional al final de la línea
-            lineaEsquema += '/' + tamañoRegistro;
-        }
-
-        // Escribir la línea modificada en el archivo de salida
-        outputFile << lineaEsquema << std::endl;
-    }
-
-    fileEsquema.close();
-    outputFile.close();
-
-    // Renombrar el archivo temporal al original
-    std::rename((this->rutaBase + "esquema_temp.txt").c_str(), (this->rutaBase + "esquema.txt").c_str());
-}
-
-/*void Controlador::generarBloque() {
-    std::string carpeta = "Bloques";
-    fs::remove_all(carpeta);
-    crearCarpeta(carpeta);
-    this->sectores = disco.getCantidadSectores();
-    int sectoresxBloque = disco.getCantidadSectoresBloque();
-    int cont = 1;
-
-    for (int i = 1; i <= this->cantBloques; ++i) {
-        std::string nombreArchivo = this->rutaBase + carpeta + "/bloque" + std::to_string(i) + ".txt";
-        std::ofstream archivo(nombreArchivo);
-
-        if (archivo.is_open()) {
-            // Estructura de ingreso a archivo
-            archivo << this->bloqueAct << "#" << cont << "#" << std::endl;
-
-            archivo.close();
-        } else {
-            std::cerr << "Error al abrir el archivo " << nombreArchivo << std::endl;
-        }
-        cont += sectoresxBloque;
-    }
-}
-
-void llenarDirectorioBloques(int bloque, )
-
-
-void Controlador::generarBloque() {
-    std::string carpeta = "Bloques";
-    fs::remove_all(carpeta);
-    crearCarpeta(carpeta);
-    this->sectores = disco.getCantidadSectores();
-    int sectoresxBloque = disco.getCantidadSectoresBloque();
-    int cont = 1;
-
-    for (int i = 1; i <= this->cantBloques; ++i) {
-        std::string nombreArchivo = this->rutaBase +  carpeta + "\\bloque" + std::to_string(this->bloqueAct) + ".txt";
-        std::ofstream archivo(nombreArchivo);
-        
-
-        if (archivo.is_open()) {
-            archivo << this->bloqueAct << "#" << cont << "#" << std::endl;
-
-            archivo.close();
-        } else {
-            std::cerr << "Error al abrir el archivo " << nombreArchivo << std::endl;
-        }
-        cont = cont + sectoresxBloque;
-    }
-}
-
-
-
-
-//---------------------------------------------------------------------------
-
-
-
-void asignarEspacio(int idRegistro, int plato, int superficie, int pista, int sector) {
-    
-    
-    //diccionarioBloques[idRegistro] = std::make_tuple(plato, superficie, pista, sector);
-
-
-
-
-    //disco.almacenarRegistro(idRegistro, plato, superficie, pista, sector);
-    
-}
-
-Registro Controlador::recuperarRegistro(int idRegistro) {
-    auto ubicacion = diccionarioBloques.find(idRegistro);
-    if (ubicacion != diccionarioBloques.end()) {
-        auto [plato, superficie, pista, sector] = ubicacion->second;
-        //return disco.recuperarRegistro(plato, superficie, pista, sector);
-    } else {
-        std::cerr << "Registro no encontrado." << std::endl;
-        return Registro{-1 };
-    }
-}
-
-void Controlador::crearCarpeta(const std::string& carpeta) {
-    if (!fs::exists(carpeta)) {
-        fs::create_directory(carpeta);
-    }
-}*/
 
 DiskManager::~DiskManager() {
-    delete[] freeSpaceMap;
+    //delete[] freeSpaceMap;
 
-    std::string pathBloque = RUTA_BASE + "\\Bloques";
-    std::string pathSector = RUTA_BASE + "\\Sectores";
+    std::string pathBloque = RUTA_BASE + std::string("\\Bloques");
+    std::string pathSector = RUTA_BASE + std::string("\\Sectores");
 
     /*try {
         // Verificar si la carpeta existe
@@ -537,7 +703,7 @@ DiskManager::~DiskManager() {
 }
 
 
-// *OPERACIONES CON EL STRUCT
+// ================================= OPERACIONES CON EL STRUCT =========================================
 std::string cabeceraToString(const CabeceraSector& cabecera) {
     std::stringstream ss;
     ss << cabecera.identificador << "#" << cabecera.espacioDisponible << "#" << cabecera.espaciosLibres << "#" << cabecera.referenciaSector << "#";
@@ -624,4 +790,14 @@ void reemplazarCabecera(const std::string& archivo, const CabeceraSector& nuevaC
     archivoWrite.close();
 
     std::remove(archivoTemporal.c_str());
+}
+
+// ============================================= ADICIONALES =========================================
+std::string removerPrimerElemento(const std::string& cadena) {
+    std::cout << cadena << std::endl;
+    size_t pos = cadena.find(',');
+    if (pos == std::string::npos) {
+        return "";
+    }
+    return cadena.substr(pos + 1);
 }

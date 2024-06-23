@@ -1,3 +1,6 @@
+#ifndef EXTRAS_H
+#define EXTRAS_H
+
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -42,38 +45,5 @@ int scaner(std::string str) {
     return 0;
 }
 
-/*
-    * Calcula el tamaño de un resgitro (LONGITUD FIJA)
-*/
-int calcularTamanioRegistro(const std::string& registro) {
-    std::ifstream file(registro);
-    if (!file.is_open()) {
-        std::cerr << "No se pudo abrir el archivo: " << registro << std::endl;
-        return -1;
-    }
-    
-    std::string linea;
-    int tamanioLinea;
-    int tamanioRegistro = 0;
-    std::getline(file, linea);
-    
-    // Leer el archivo línea por línea
-    while (std::getline(file, linea)) {
-        std::istringstream ss(linea);
-        std::string atributo;
 
-        tamanioLinea = 0;        
-
-        while (std::getline(ss, atributo, ',')) {
-            // Elimina comillas al inicio y al final, si existen
-            tamanioLinea = tamanioLinea + scaner(atributo);            
-        }
-
-
-        if (tamanioLinea > tamanioRegistro) {
-            tamanioRegistro = tamanioLinea;
-        }
-    }
-    return tamanioRegistro;
-}
-
+#endif
