@@ -10,26 +10,50 @@
 #include <unordered_map>
 #include <tuple>
 #include <list>
+#include <optional>
+#include <cstdio>
 
 #define RUTA_BASE "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\"
 
 struct Nodo {
     int numeroBloque;
     int espacioLibre;
-    std::unordered_map<int, std::tuple<int, char, int>> sectores; // <idSector, <plato, superficie, pista>>
+    std::unordered_map<int, std::tuple<int, char, int, bool>> sectores; // <idSector, <plato, superficie, pista, espacioSector>>
 
     Nodo* prev;
     Nodo* next;
 
     Nodo(int numBloque, int espLibre)
         : numeroBloque(numBloque), espacioLibre(espLibre), prev(nullptr), next(nullptr) {}
+    
+    void agregarSector(int idSector, int plato, char superficie, int pista) {
+        sectores[idSector] = std::make_tuple(plato, superficie, pista, false);
+    }
 };
 
 struct CabeceraSector {
-    int identificador;
-    int espacioDisponible;
-    std::string espaciosLibres;
-    int referenciaSector;
+    std::optional<int> identificador;
+    std::optional<int> espacioDisponible;
+    std::optional<std::string> espaciosLibres;
+    std::optional<int> numRegistros;
+
+    // Función para convertir la cabecera a una cadena
+    std::string toString() const {
+        std::string cabecera;
+        if (identificador.has_value()) {
+            cabecera += std::to_string(identificador.value()) + "#";
+        }
+        if (espacioDisponible.has_value()) {
+            cabecera += std::to_string(espacioDisponible.value()) + "#";
+        }
+        if (espaciosLibres.has_value()) {
+            cabecera += espaciosLibres.value() + "#";
+        }
+        if (numRegistros.has_value()) {
+            cabecera += std::to_string(numRegistros.value()) + "#";
+        }
+        return cabecera;
+    }
 };
 
 std::string removerPrimerElemento(const std::string&);
@@ -74,6 +98,8 @@ class DiskManager {
 
         void getBlockInformation(); //Imprime la cantidad de bloque y la longitud del mismo
 
+        void validarUbicacionActual(); //Hace el incremento de valores Act en caso lo necesite. Valida ubicaciones
+
         void createStructureDisk(); //Crea la carpetas con la cantidad de sectores y bloques establecido
 
         void setCurrentScheme(std::string nameScheme);
@@ -87,13 +113,15 @@ class DiskManager {
 
 
 
+        void showBlockContent(int); //Imprime el contenido de un bloque
         void showSectorContent(int, char, int, int); //Imprime el contenido de un sector
 
+        //Modificar esquema con bloque al que pertenece
 
 
         // ================= HEAP FILE ==========
-        void insertBlocktoFreeHeapFile(int, int, const std::unordered_map<int, std::tuple<int, char, int>>&);
-        void insertBlocktoFullHeapFile(int, int, const std::unordered_map<int, std::tuple<int, char, int>>&);
+        void insertBlocktoFreeHeapFile(int, int, const std::unordered_map<int, std::tuple<int, char, int, bool>>&);
+        void insertBlocktoFullHeapFile(int, int, const std::unordered_map<int, std::tuple<int, char, int, bool>>&);
         void showFullHeapFile();
 
         void printBlockInformation(Nodo*);
@@ -118,19 +146,24 @@ class DiskManager {
 
         // ================= LONGITUD FIJA ==================
 
-        void getSizeScheme(const std::string&);
+        /*
+        -Llenar bloque
+        -Llenar sector
 
+        -Longitud registro
+        -
+        
+        */
+
+        void getSizeScheme(const std::string&);
         void setLongitudRegistro(int); //Indica la longitud de registro en caso se considere un disco de LONGITUD FIJA
 
-        void usarLongitudFija(const std::string);
-
-        void llenarLongitudFija(const std::string&);
-        void llenarSectorLongitudFija(std::string);
+        void useLongitudFija(const std::string);
+        void sectorFillLongitudFija(const std::string&, int, Nodo*&);
         void actualizarLineaLongitudFija(const std::string&, const std::string&, int);
-        void actualizarBloque();
+
+
         void actualizarSector();
-        int getEspacioLibreBloque(int);
-        void updateEspacioLibreBloque(int, int);
 
 
 
@@ -138,6 +171,9 @@ class DiskManager {
 
 
         // ================= LONGITUD VARIABLE ==============
+
+
+        // ================= DE USO GENERAL - ARCHIVOS ======
 
 
 

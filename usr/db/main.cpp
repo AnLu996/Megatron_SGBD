@@ -1,7 +1,4 @@
 #include "megatron.h"
-#include "disco.h"
-#include "diskManager.h"
-#include "extras.h"
 
 #include <iostream>
 #include <string>
@@ -726,8 +723,8 @@ bool consulta(std::string& query) {
 	return true;
 }
 
-int main() {
-    int resp;
+void menu() {
+	int resp;
     int option;
     bool tipoRegistro;
     bool continuar = true;
@@ -908,5 +905,10 @@ int main() {
         };
     } while (continuar);
 
-    return 0;
+}
+int main() {
+    
+	menu();
+
+	return 0;
 }
