@@ -12,6 +12,9 @@ private:
     PageTable PageTable;
 
 public:
+    /*
+    @author Michael Ticona
+    */
     BufferManager(int, int);
     /*
     Constructor de la clase BufferManager. Toma el tamaño del búfer como argumento e inicializa el búfer, la tabla
@@ -28,12 +31,20 @@ public:
     página en el marco, actualiza la tabla de páginas y fija el marco como "pin". Finalmente, imprime un mensaje 
     indicando que la página se cargó en el marco.   
     */
+
+    /*
+        @author Michael Ticona
+    */
     void requestPage(int, char, std::vector<std::string>);
     /*
     Esta función solicita una página con el ID dado. Primero, intenta obtener el ID de marco asociado con el ID de 
     página de la tabla de páginas. Si la página no está en memoria, la carga utilizando la función setPage(). 
     Luego, obtiene el marco correspondiente al ID de marco obtenido y lo "fija" (pin). Devuelve una referencia al 
     marco solicitado.
+    */
+
+    /*
+        @author Michael Ticona
     */
     void releasePage(int pageID);
     /*
@@ -42,12 +53,28 @@ public:
     agrega el marco al reemplazador para un posible reemplazo.
     */
 
+    /*
+        @author Michael Ticona
+    */
+
     void printPageTable();
     /*
     Esta función imprime la tabla de páginas junto con información relevante sobre cada entrada, como el ID de marco, 
     el ID de página, el bit de suciedad, el recuento de "pin" y el último uso.
     */  
+
+    /*
+        @author Michael Ticona
+    */
     void PinearPagina(int);
+
+    /*
+        @author Michael Ticona
+    */
     void PrintRequest();
+
+    /*
+        @author Michael Ticona
+    */
     void ViewPagina(int );
 };

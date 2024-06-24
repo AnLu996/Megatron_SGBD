@@ -40,7 +40,7 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
             int frameID = BufferPool.FindUnpinnedFrame();
             PageTable.MapPageToFrame(pageID, frameID);
             BufferPool.IncremetFrame(frameID);
-            BufferPool.SetData(Data, frameID);
+            
             
             for (const auto& entry : PageTable.pageMap) {
                 if (pageID != entry.first){
@@ -54,6 +54,7 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
                     frame->refOn();
                     BufferPool.UpdateIndex();
                     frame->SetPinCount(operation);
+                    BufferPool.SetData(Data, entry.second);
                 }
             }
         } else {
@@ -72,6 +73,7 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
                     frame->refOn();
                     BufferPool.UpdateIndex();
                     frame->SetPinCount(operation);
+                    BufferPool.SetData(Data, entry.second);
                 }
             }
         }
@@ -81,8 +83,7 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
             int frameID = BufferPool.FindUnpinnedFrame();
             PageTable.MapPageToFrame(pageID, frameID);
             BufferPool.IncremetFrame(frameID);
-            BufferPool.DirtyFrame(frameID);
-            BufferPool.SetData(Data, frameID);    
+            BufferPool.DirtyFrame(frameID);   
             for (const auto& entry : PageTable.pageMap) {
                 if (pageID != entry.first){
                     Frame* frame = BufferPool.GetFrame(entry.second);
@@ -95,6 +96,7 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
                     frame->refOn();
                     BufferPool.UpdateIndex();
                     frame->SetPinCount(operation);
+                    BufferPool.SetData(Data, entry.second);
                 }
             }
         } 
@@ -115,8 +117,18 @@ void BufferManager::requestPage(int pageID, char operation, std::vector<std::str
                     frame->refOn();
                     BufferPool.UpdateIndex();
                     frame->SetPinCount(operation);
+                    BufferPool.SetData(Data, entry.second);
                 }
             }
+        }
+        std::cout << "Desea Modificar? (S/N)" << std::endl;
+        char response;
+        std::cin >> response;
+        if (response == 'S' || response == 's') {
+            std::cout << " pagina modificada" << std::endl;
+        }
+        else if (response == 'N' || response == 'n') {
+            std::cout << " pagina no modificada" << std::endl;
         }
     }
 }

@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <limits>
 
+/*
+	@author Andrea Cuela Y Michael Ticona
+*/
 void trim(std::string &str) {
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int ch) {
         return !std::isspace(ch);
@@ -16,6 +19,9 @@ void trim(std::string &str) {
     }).base(), str.end());
 }
 
+/*
+	@author Andrea Cuela Y Michael Ticona
+*/
 bool esNumero(const std::string& str) {
     for (char c : str) {
         if (!std::isdigit(c)) {
@@ -25,10 +31,16 @@ bool esNumero(const std::string& str) {
     return true; // Si todos los caracteres son dígitos, devuelve verdadero
 }
 
+/*
+	@author Andrea Cuela Y Michael Ticona
+*/
 size_t encontrarSimbolo(const std::string& cadena, char simbolo) {
     return cadena.find_first_of(simbolo);
 }
 
+/*
+	@author Andrea Cuela Y Michael Ticona
+*/
 bool consulta(std::string& query) {
 	std::ifstream esquema("F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\esquema.txt");
     if (!esquema.is_open()) {
@@ -723,6 +735,9 @@ bool consulta(std::string& query) {
 	return true;
 }
 
+/*
+	@author Andrea Cuela Y Michael Ticona
+*/
 void menu() {
 	int option;
     int resp;
