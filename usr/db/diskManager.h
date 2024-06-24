@@ -146,16 +146,7 @@ class DiskManager {
 
         // ================= LONGITUD FIJA ==================
 
-        /*
-        -Llenar bloque
-        -Llenar sector
-
-        -Longitud registro
-        -
-        
-        */
-
-        void getSizeScheme(const std::string&);
+        void setSizeScheme(const std::string&);
         void setLongitudRegistro(int); //Indica la longitud de registro en caso se considere un disco de LONGITUD FIJA
 
         void useLongitudFija(const std::string);

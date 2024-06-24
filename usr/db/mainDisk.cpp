@@ -13,7 +13,7 @@ void menuDisco() {
 
 
     std::string esquema = "PassengerId#int#Survived#int#Pclass#int#Name#varchar(20)#Sex#varchar(8)#Age#int#SibSp#int#Parch#int#Ticket#varchar(10)#Fare#float#Cabin#varchar(4)#Embarked#char";
-    disk.getSizeScheme(esquema);
+    disk.setSizeScheme(esquema);
 
     //std::string lineaArchivo = "9,1,3,"Andre",female,27,0,2,347742,11.1333,,S";
     std::ifstream file(RUTA_BASE + std::string("texto.txt"));
@@ -26,9 +26,9 @@ void menuDisco() {
         std::cout << "\n\n*********************************************************" << std::endl;
         std::cout << "--------- MENU DISCO ----------" << std::endl;
         std::cout << "1. Mostrar informacion de disco" << std::endl; //HECHO
-        std::cout << "2. Mostrar contenido de bloque" << std::endl; //HECHO
-        std::cout << "3. Mostrar Heap File (Linked List)" << std::endl; // HECHO
-        //std::cout << "4. Ver ubicacion de sector" << std::endl; //QUIZAS ES ALGO REPETITIVO, REDUNDANTE, PORQUE LO HACE VER EL CONTENIDO DE BLOQUE
+        std::cout << "2. Mostrar informacion de bloque" << std::endl; //HECHO
+        std::cout << "3. Mostrar contenido de bloque" << std::endl; //HECHO
+        std::cout << "4. Mostrar Heap File (Linked List)" << std::endl; // HECHO
         std::cout << "5. Mostrar contenido de sector por ubicacion" << std::endl; // HECHO
         std::cout << "0. Regresar" << std::endl; 
         std::cout << "\tIngresa una opcion: ";
@@ -51,13 +51,18 @@ void menuDisco() {
                 break;
             }
             case 3: {
+                std::cout << "\tIndique el # de bloque: ";
+                int bloque;
+                std::cin >> bloque;
+
+                disk.printBlockHeapFile(bloque);
+
+                break;
+            }
+            case 4: {
                 disk.showFullHeapFile();
                 
                 break;                
-            }
-            case 4: {
-                
-                break;
             }
             case 5: {
                 std::cout << "\n\tIndique el plato: ";

@@ -38,7 +38,6 @@ void DiskManager::showInformation() {
     std::cout << "\t+-----------------------------+-------------------+" << std::endl;
 }
 
-
 void DiskManager::getBlockInformation() {
     std::cout << "------------------------------------------------------" << std::endl;
     disco.printTamañoTotal();
@@ -314,6 +313,7 @@ void DiskManager::increaseSpaceofBlock(int numBloque) {
     }
 
     bloque->espacioLibre = bloque->espacioLibre + longitudRegistro;
+    
     if(searchFullSpace(bloque->numeroBloque) && bloque->espacioLibre >= longitudRegistro){
         moveBlockFullToFree(bloque);
         this->bloqueAct = this->freeSpaceInicial->numeroBloque;
@@ -465,7 +465,7 @@ void DiskManager::recoverInformationFromHeapFile() {
 /*
     * Calcula el tamaño de un registro por esquema (LONGITUD FIJA)
 */
-void DiskManager::getSizeScheme(const std::string& esquema) {
+void DiskManager::setSizeScheme(const std::string& esquema) {
     std::stringstream ss(esquema);
     std::string campo;
     std::string tipo;
@@ -476,13 +476,16 @@ void DiskManager::getSizeScheme(const std::string& esquema) {
     std::stringstream ssCount(esquema);
     std::string temp;
     int count = 0;
+    std::getline(ssCount, temp, '#');
+
     while (std::getline(ssCount, temp, '#')) {
         count++;
     }
     count /= 2; 
 
     tipoCampo = new int[count];
-
+    
+    std::getline(ss, temp, '#');
     while (std::getline(ss, campo, '#') && std::getline(ss, tipo, '#')) {
         if (tipo == "int") {
             tipoCampo[i] = sizeof(int);
@@ -511,7 +514,7 @@ void DiskManager::getSizeScheme(const std::string& esquema) {
         ++i;
     }
 
-    std::cout << size << std::endl;
+    std::cout << "Tamanio del registro: " << size << std::endl;
     setLongitudRegistro(size);
     
     for (int j = 0; j < i; ++j) {

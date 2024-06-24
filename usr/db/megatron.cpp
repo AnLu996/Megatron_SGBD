@@ -9,12 +9,6 @@
 
 #define MAX_ENCABEZADOS 15
 
-/*void trim(std::string& str) {
-    size_t first = str.find_first_not_of(' ');
-    size_t last = str.find_last_not_of(' ');
-    str = str.substr(first, (last - first + 1));
-}*/
-
 Megatron::Megatron() : controladorDisco(false, 0, 0, 0, 0, 0) {
 
 }
@@ -34,12 +28,18 @@ Megatron::Megatron(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int
         }
     }
     archivo.close();
+
+    controladorDisco.createStructureDisk();
 }
 
+
+// ----------- SETS ----------------------------------------------------
 void Megatron::setEsquema(const std::string nombreEsquema){
     this->esquemaActual = nombreEsquema;
+    controladorDisco.setSizeScheme(nombreEsquema);
 }
 
+// ----------- ESQUEMA -------------------------------------------------
 void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
     std::cout << "Ruta completa: " << RUTA_BASE + file + ".csv" << std::endl;
     std::ifstream readFile(RUTA_BASE + file + ".csv");
@@ -50,6 +50,10 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
     if (readFile.is_open()) {
         
         //CREAR ESQUEMA CON CABECERA
+        std::cout << "\tCrear esquema por defecto? (S/N): ";
+        char option;
+        std::cin >> option; 
+
         std::string lineaArchivo;
         std::string cabeza;
         std::string tipo;
@@ -57,21 +61,29 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
         esquema += file;
 
         std::getline(readFile, lineaArchivo);
-        
-        while (lineaArchivo[i] != '\0') {
-            if (lineaArchivo[i] == ',') {
-                std::cout << "\tIndica el tipo de dato para '" << cabeza << "': " ;
-                std::cin >> tipo;   
-                esquema +=  + "#" + cabeza + "#" + tipo;
-                cabeza.clear();
+
+        if (option == 'S' || option == 's') {
+            esquema = "Titanic#PassengerId#int#Survived#bool#Pclass#char#Name#varchar(60)#Sex#varchar(6)#Age#int#SibSp#bool#Parch#char#Ticket#varchar(14)#Fare#varchar(10)#Cabin#varchar(15)#Embarked#char";
+        } else {            
+            while (lineaArchivo[i] != '\0') {
+                if (lineaArchivo[i] == ',') {
+                    std::cout << "\tIndica el tipo de dato para '" << cabeza << "': " ;
+                    std::cin >> tipo;   
+                    esquema +=  + "#" + cabeza + "#" + tipo;
+                    cabeza.clear();
+                }
+                else {
+                    cabeza.push_back(lineaArchivo[i]);
+                }
+                i++;
             }
-            else {
-                cabeza.push_back(lineaArchivo[i]);
-            }
-            i++;
         }
+
         writeEsquema << esquema << std::endl;
         writeEsquema.close();
+        
+
+        setEsquema(esquema);
 
         //CREAR RELACIÓN CON CONTENIDO
         std::string relacionArchivo;
@@ -104,7 +116,7 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
                 }
                 registro += atributo;
                 writeRelacion << registro << std::endl;  */       
-                controladorDisco.usarLongitudFija(lineaArchivo);
+                controladorDisco.useLongitudFija(lineaArchivo);
             }
         } else {
             int count = 0;
@@ -133,7 +145,7 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
                 }
                 registro += atributo;
                 writeRelacion << registro << std::endl; */
-                controladorDisco.usarLongitudFija(lineaArchivo);
+                controladorDisco.useLongitudFija(lineaArchivo);
                 if ( count == cant) 
                     break;
             }
@@ -143,8 +155,7 @@ void Megatron::crearEsquemaDesdeCsv(const std::string file, int cant){
         readFile.close();
 
         std::cout << "Esquema agregado y relacion creada exitosamente\n";
-    }
-    else {
+    } else {
         std::cerr << "Error al abrir el archivo." << std::endl;
     }
 }
@@ -186,6 +197,8 @@ void Megatron::agregarEsquemaManual() {
     }
     archivo << esquema << std::endl;
     archivo.close();
+
+    setEsquema(esquema);
 }
 
 /*void Megatron::eliminarEsquema(std::string lineaActual) {
@@ -205,6 +218,8 @@ void Megatron::agregarEsquemaManual() {
 
     archivo.close();
 }*/
+
+// ------------ RELACIONES ----------------------------------------------
 
 void Megatron::ingresarRelacionManual(bool tipo) {
     char rpta = 'S';
@@ -339,6 +354,9 @@ void Megatron::ingresarDesdeArchivoCsv(const std::string file, int cant) {
     readFile.close();
 }
 
+
+// ------------- EXTRAS --------------------------------------------------
+
 std::string Megatron::crearArchivoRelacion(std::string Esquema) {
     std::cout << "Creando relacion #" << Esquema << "...." << std::endl;
 
@@ -403,6 +421,84 @@ std::string Megatron::crearArchivoRelacion(std::string Esquema) {
     std::cout << "Operación completada correctamente." << std::endl;
     return true;    
 }*/
+
+
+void Megatron::menuDisco() {
+    int option;
+
+    do {
+        std::cout << "\n\n*********************************************************" << std::endl;
+        std::cout << "--------- MENU DISCO ----------" << std::endl;
+        std::cout << "1. Mostrar informacion de disco" << std::endl; //HECHO
+        std::cout << "2. Mostrar informacion de bloque" << std::endl; //HECHO
+        std::cout << "3. Mostrar contenido de bloque" << std::endl; //HECHO
+        std::cout << "4. Mostrar Heap File (Linked List)" << std::endl; // HECHO
+        std::cout << "5. Mostrar contenido de sector por ubicacion" << std::endl; // HECHO
+        std::cout << "0. Regresar" << std::endl; 
+        std::cout << "\tIngresa una opcion: ";
+        std::cin >> option;
+
+        switch (option) {
+            case 1: {
+                controladorDisco.showInformation();
+
+                break;                
+            }
+            case 2: {
+                std::cout << "\tIndique el # de bloque: ";
+                int bloque;
+                std::cin >> bloque;
+
+                controladorDisco.printBlockHeapFile(bloque);
+
+                break;
+            }
+            case 3: {
+                std::cout << "\tIndique el # de bloque: ";
+                int bloque;
+                std::cin >> bloque;
+
+                controladorDisco.showBlockContent(bloque);
+
+                break;
+            }
+            case 4: {
+                controladorDisco.showFullHeapFile();
+                
+                break;                
+            }
+            case 5: {
+                std::cout << "\n\tIndique el plato: ";
+                int plato;
+                std::cin >> plato;
+
+                std::cout << "\tIndique la superficie (A | B): ";
+                char superficie;
+                std::cin >> superficie;
+
+                std::cout << "\tIndique la pista: ";
+                int pista;
+                std::cin >> pista;
+
+                std::cout << "\tIndique el sector: ";
+                int sector;
+                std::cin >> sector;
+                
+                std::cout << std::endl;
+
+                controladorDisco.showSectorContent(plato, superficie, pista, sector);
+                
+                break;                
+            }
+            default: {
+                std::cout << "Opcion no valida" << std::endl;
+                break;
+            }
+        };
+        
+    }  while (option != 0);
+}
+
 
 
 /*~Megatron() {

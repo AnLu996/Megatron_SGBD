@@ -724,10 +724,10 @@ bool consulta(std::string& query) {
 }
 
 void menu() {
-	int resp;
-    int option;
+	int option;
+    int resp;
     bool tipoRegistro;
-    bool continuar = true;
+
     std::string nombreFile;
 
     Megatron dataBase;
@@ -735,16 +735,20 @@ void menu() {
     do {
         std::cout << "\n\n*********************************************************" << std::endl;
         std::cout << "--------- MENU SISTEMA GESTOR DE BASE DE DATOS ----------" << std::endl;
-        std::cout << "1. Crear disco" << std::endl;
-        std::cout << "2. Crear esquema" << std::endl;
-        std::cout << "3. Crear relacion" << std::endl;
-        std::cout << "4. Agregar registro a relacion" << std::endl;
-        std::cout << "5. Realizar consultas" << std::endl;
-        std::cout << "6. Salir" << std::endl;
+        std::cout << "1. Crear disco" << std::endl; //HECHO
+		std::cout << "2. Definir Buffer Pool" << std::endl; //
+		std::cout << "3. Menu disco Manager" << std::endl; //HECHO
+		std::cout << "4. Menu buffer Manager" << std::endl; //
+		std::cout << "***** MEGATRON *****" << std::endl; 
+		std::cout << "5. Crear esquema" << std::endl; // HECHO
+        std::cout << "6. Crear relacion" << std::endl; //
+        std::cout << "7. Agregar registro a relacion" << std::endl; //
+        std::cout << "8. Realizar consultas" << std::endl; //
+        std::cout << "0. Salir" << std::endl;
         std::cout << "\tIngresa una opcion: ";
-        std::cin >> resp;
+        std::cin >> option;
 
-        switch (resp) {
+        switch (option) {
             case 1: {
                 std::cout << "\n*********************************************************" << std::endl;
                 std::cout << "Desea crear disco por DEFAULT? (S/N)" << std::endl;
@@ -756,9 +760,8 @@ void menu() {
                     tipoRegistro = false;
 
                     if (answer == 'S' || answer == 's') {
-                        Megatron dataBase(tipoRegistro, 3, 6, 10, 300, 20); // Adjust parameters as needed
-                        dataBase.controladorDisco.createStructureDisk();
-                        //dataBase.controladorDisco.configurarDirectorio();
+                        dataBase = Megatron(tipoRegistro, 3, 6, 10, 500, 20);
+                        
                     } else if (answer == 'N' || answer == 'n') {
                         int nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque;
 
@@ -773,51 +776,67 @@ void menu() {
                         std::cout << "Ingresa la cantidad de sectores x bloque: ";
                         std::cin >> sectoresxBloque;
                         
-                        Megatron database(tipoRegistro, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque); // Ajusta tamRegistro según sea necesario
-                        dataBase.controladorDisco.createStructureDisk();
-                        //dataBase.controladorDisco.configurarDirectorio();
+                        dataBase = Megatron(tipoRegistro, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque); 
                     }
                 }
+
                 break;
             }
             case 2: {
-                std::cout << "\n*********************************************************" << std::endl;
-                std::cout << "1. Generar esquema a partir de archivo .CSV y crear relacion" << std::endl;
-                std::cout << "2. Crear un esquema nuevo" << std::endl;                
-                std::cout << "\tIngresa una opcion: ";
-                std::cin >> option;
+				
 
-                if (option == 1) {
+				break;
+			}
+			case 3: {
+				dataBase.menuDisco();
+				
+				break;
+			}
+			case 4: {
+				
+				
+				break;
+			}
+			case 5: {
+                std::cout << "\n*********************************************************" << std::endl;
+                std::cout << "1. Generar esquema a partir de archivo .CSV y crear relacion" << std::endl; //HECHO
+                std::cout << "2. Crear un esquema nuevo" << std::endl; //HECHO 
+                std::cout << "\tIngresa una opcion: ";
+                std::cin >> resp;
+
+                if (resp == 1) {
                     std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
+
                     std::cout << "\n\tIndica el nombre del archivo a leer: ";
                     std::getline(std::cin, nombreFile);
-                    //int tamañoRegistro = calcularTamanioRegistro(nombreFile);
-                    //dataBase.controladorDisco.setLongitudRegistro(tamañoRegistro);
+
                     std::cout << "\n\tElige la cantidad de registros a llenar (0 = todo): ";
                     int cant;
                     std::cin >> cant;
+
                     dataBase.crearEsquemaDesdeCsv(nombreFile, cant);
-                } else if (option == 2) {
+                } else if (resp == 2) {
                     std::cin.ignore(); // Ignora el carácter de nueva línea después de leer 'option'
                     dataBase.agregarEsquemaManual();
                 }
+
                 break; 
             }
-            case 3:
-            {                
+            case 6: {                
                 std::string nombreEsquema;
 
                 std::cout << "\n*********************************************************" << std::endl;
-                std::cout << "1. Crear relacion usando el esquema creado previamente" << std::endl;
-                std::cout << "2. Crear relacion de un esquema existente" << std::endl;                
+                std::cout << "1. Crear relacion usando el esquema creado previamente" << std::endl; //
+                std::cout << "2. Crear relacion de un esquema existente" << std::endl; //
                 std::cout << "\tIngresa una opcion: ";
-                std::cin >> option;
-                if (option == 2) {
+                std::cin >> resp;
+
+                if (resp == 2) {
                     std::cout << "Indica el nombre del esquema: ";
                     std::cin >> nombreEsquema;
                     dataBase.setEsquema(nombreEsquema);
                 }
-                else if (option != 1) {
+                else if (resp != 1) {
                     break;
                 }
                 
@@ -827,7 +846,7 @@ void menu() {
                 std::cout << "\tIngresa una opcion: ";
                 std::cin >> option;                  
 
-                if (option == 1) {
+                if (resp == 1) {
                     
                     std::cout << "\n\tIndica el nombre del archivo a leer: ";
                     std::getline(std::cin, nombreFile);
@@ -838,72 +857,71 @@ void menu() {
                     //dataBase.ingresarDesdeArchivoCsv(nombreFile,cant);
                     break;
                 }
-                else if (option == 2) {
+                else if (resp == 2) {
                     dataBase.ingresarRelacionManual(0);
                 }
                 else {
                     break;
                 }
-        } 
-        case 4:
-		{
-			std::string nomEsquema;
-			std::string nomRelacion;
-			
-			std::cout << "Indica el nombre del Esquema: ";
-			std::cin >> nomEsquema;
-			dataBase.setEsquema(nomEsquema);
+			} 
+			case 7:
+			{
+				std::string nomEsquema;
+				std::string nomRelacion;
+				
+				std::cout << "Indica el nombre del Esquema: ";
+				std::cin >> nomEsquema;
+				dataBase.setEsquema(nomEsquema);
 
-			// Limpiar el búfer de entrada
-			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				// Limpiar el búfer de entrada
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-			std::cout << "\n*********************************************************" << std::endl;
-			std::cout << "1. Leer desde .CSV" << std::endl;
-			std::cout << "2. Ingresar datos manualmente" << std::endl;                
-			std::cout << "\tIngresa una opcion: ";
-			std::cin >> option;
+				std::cout << "\n*********************************************************" << std::endl;
+				std::cout << "1. Leer desde .CSV" << std::endl;
+				std::cout << "2. Ingresar datos manualmente" << std::endl;                
+				std::cout << "\tIngresa una opcion: ";
+				std::cin >> resp;
 
-			// Limpiar el búfer de entrada nuevamente
-			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+				// Limpiar el búfer de entrada nuevamente
+				std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-			if (option == 1) {
-				std::cout << "\n\tIndica el nombre del archivo a leer: ";
-				std::getline(std::cin, nombreFile);
-				//dataBase.llenarDesdeArchivo(1, nombreArchivo);
-			}
-			else if (option == 2) {
-				dataBase.ingresarRelacionManual(1);
-			}
-			else {
+				if (resp == 1) {
+					std::cout << "\n\tIndica el nombre del archivo a leer: ";
+					std::getline(std::cin, nombreFile);
+					//dataBase.llenarDesdeArchivo(1, nombreArchivo);
+				}
+				else if (resp == 2) {
+					dataBase.ingresarRelacionManual(1);
+				}
+				else {
+					break;
+				}
+
+				break;
+			} 
+
+			case 8:
+			{
+				bool seguir = false;
+				std::string query;
+				std::cin.ignore();
+				while (!seguir) {
+					std::cout << "Realiza tu consulta de tipo SQL: ";
+					std::getline(std::cin, query);
+					seguir = consulta(query);
+				}
 				break;
 			}
+			case 9: {
+				//controlador.~Controlador();
 
-			break;
-		} 
-
-        case 5:
-        {
-            bool seguir = false;
-            std::string query;
-			std::cin.ignore();
-			while (!seguir) {
-				std::cout << "Realiza tu consulta de tipo SQL: ";
-            	std::getline(std::cin, query);
-            	seguir = consulta(query);
+				break;
 			}
-            break;
-        }
-		case 6: {
-			//controlador.~Controlador();
-			continuar = false;
-
-			break;
-		}
-        default:
-            std::cout << "Opción no válida. Inténtalo de nuevo." << std::endl;
-            break;
-        };
-    } while (continuar);
+			default:
+				std::cout << "Opción no válida. Inténtalo de nuevo." << std::endl;
+				break;
+			};
+    } while (option);
 
 }
 int main() {
