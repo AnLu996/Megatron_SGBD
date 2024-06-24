@@ -7,14 +7,11 @@
 #include <algorithm>
 #include <cctype>
 
-#define MAX_ENCABEZADOS 15
-
-Megatron::Megatron() : controladorDisco(false, 0, 0, 0, 0, 0) {
+Megatron::Megatron() : controladorDisco(false, 0, 0, 0, 0, 0), gestor (0, 0) {
 
 }
-Megatron::Megatron(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque)
-    : controladorDisco(tipo, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque) {
-    
+Megatron::Megatron(bool tipo, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque, int frames)
+    : controladorDisco(tipo, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque), gestor(frames, bytesxSector*sectoresxBloque) {
     this->nEsquema = RUTA_BASE + std::string("\\esquema.txt");
     
     std::ifstream archivo(nEsquema);
@@ -499,6 +496,78 @@ void Megatron::menuDisco() {
     }  while (option != 0);
 }
 
+void releasePageFromMemory(int pageID, BufferManager& manager) {
+        manager.releasePage(pageID);
+
+}
+void pinear(int pageID, BufferManager& manager) {
+    manager.PinearPagina(pageID);
+}
+
+void Megatron::menuBuffer() {   
+    int choice, pageID;
+    char operation;
+    do {
+        std::cout << "\n########  GESTION DE MEMORIA  ########\n";
+        std::cout << "1. Solicitar pagina (Lectura/Escritura)\n";
+        std::cout << "2. Imprimir tabla de paginas\n";
+        std::cout << "3. Liberar pagina\n";
+        std::cout << "4. Pinear pagina\n";
+        std::cout << "5. Mostrar requerimientos\n";
+        std::cout << "6. Mostrar data\n";
+        std::cout << "0. Regresar\n";
+        std::cout << "Seleccione una opcion: ";
+        std::cin >> choice;
+        switch (choice) {
+        case 1:
+            std::cout << "Ingrese ID de pagina: ";
+            std::cin >> pageID;
+            std::cout << "Ingrese operacion (L para leer, W para escribir): ";
+            std::cin >> operation;
+            try {
+                if (operation == 'W' || operation == 'w') {
+                    gestor.requestPage(pageID, operation, controladorDisco.readBlockToVector(pageID));
+                    std::cout << "Pagina " << pageID << " escrita y marcada como sucia.\n";
+                }
+                else if (operation == 'L' || operation == 'l') {
+                    gestor.requestPage(pageID,operation, controladorDisco.readBlockToVector(pageID));
+                    std::cout << "Pagina " << pageID << " leida.\n";
+                }
+                //manager.releasePage(pageID);  // Despinnea la página independientemente de la operación para liberar el recurso
+            }
+            catch (const std::exception& e) {
+                std::cout << "Error al procesar la pagina: " << e.what() << "\n";
+            }
+            break;
+        case 2:
+            gestor.printPageTable();
+            break;
+        case 3:
+            std::cout << "Ingrese ID de pagina: ";
+            std::cin >> pageID;
+            gestor.releasePage(pageID);
+            break;
+        case 4:
+            std::cout << "Ingrese ID de pagina: ";
+            std::cin >> pageID;
+            gestor.PinearPagina(pageID);
+            break;
+        case 5:
+            gestor.PrintRequest();
+            break;
+        case 6:
+            std::cout << "Ingrese ID de pagina: ";
+            std::cin >> pageID;
+            gestor.ViewPagina(pageID);
+            return;
+        case 7:
+            std::cout << "Saliendo del programa...\n";
+            return;
+        default:
+            std::cout << "Opcion no valida. Intente de nuevo.\n";
+        }
+    }  while (choice != 0);
+}
 
 
 /*~Megatron() {

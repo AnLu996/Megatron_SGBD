@@ -2,6 +2,7 @@
 #define MEGATRON_H
 
 #include "diskManager.h"
+#include "BufferManager.h"
 
 #include <iostream>
 #include <string>
@@ -12,6 +13,7 @@
 class Megatron {
     private:
         DiskManager controladorDisco;
+        BufferManager gestor;
 
         std::string esquemaActual; //Nombre del esquema actual
         
@@ -27,7 +29,7 @@ class Megatron {
 
     public:
         Megatron(); //constructor por defecto
-        Megatron(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque); //constructor
+        Megatron(bool longitud, int nroPlatos, int nroPistas, int nroSectores, int bytesxSector, int sectoresxBloque, int frames); //constructor
         
         // Sets ----------------------------------------------------------------------------
         void setEsquema(const std::string);
@@ -50,6 +52,7 @@ class Megatron {
         //bool eliminarRegistro(std::string);
 
         void menuDisco();
+        void menuBuffer(); 
 
         
         //~Megatron();

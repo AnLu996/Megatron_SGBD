@@ -735,8 +735,8 @@ void menu() {
     do {
         std::cout << "\n\n*********************************************************" << std::endl;
         std::cout << "--------- MENU SISTEMA GESTOR DE BASE DE DATOS ----------" << std::endl;
-        std::cout << "1. Crear disco" << std::endl; //HECHO
-		std::cout << "2. Definir Buffer Pool" << std::endl; //
+        std::cout << "1. Crear estructura inicial (disco y buffer)" << std::endl; //HECHO
+		//std::cout << "2. Definir Buffer Pool" << std::endl; //
 		std::cout << "3. Menu disco Manager" << std::endl; //HECHO
 		std::cout << "4. Menu buffer Manager" << std::endl; //
 		std::cout << "***** MEGATRON *****" << std::endl; 
@@ -754,13 +754,18 @@ void menu() {
                 std::cout << "Desea crear disco por DEFAULT? (S/N)" << std::endl;
                 char answer;
                 std::cin >> answer;
+				std::cin.ignore();
+
+				std::cout << "Ingrese la cantidad de frames deseados para el BufferPool" << std::endl;
+                int frames;
+                std::cin >> frames;
 
                 std::cin.ignore();
                 if (answer == 'S' || answer == 's' || answer == 'N' || answer == 'n') {
                     tipoRegistro = false;
 
                     if (answer == 'S' || answer == 's') {
-                        dataBase = Megatron(tipoRegistro, 3, 6, 10, 500, 20);
+                        dataBase = Megatron(tipoRegistro, 3, 6, 10, 500, 20, frames);
                         
                     } else if (answer == 'N' || answer == 'n') {
                         int nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque;
@@ -775,8 +780,9 @@ void menu() {
                         std::cin >> bytesxSector;
                         std::cout << "Ingresa la cantidad de sectores x bloque: ";
                         std::cin >> sectoresxBloque;
+
                         
-                        dataBase = Megatron(tipoRegistro, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque); 
+                        dataBase = Megatron(tipoRegistro, nroPlatos, nroPistas, nroSectores, bytesxSector, sectoresxBloque, frames); 
                     }
                 }
 
@@ -793,8 +799,8 @@ void menu() {
 				break;
 			}
 			case 4: {
-				
-				
+				dataBase.menuBuffer();		
+						
 				break;
 			}
 			case 5: {

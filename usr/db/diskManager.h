@@ -8,10 +8,17 @@
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
+#include <map>
 #include <tuple>
 #include <list>
 #include <optional>
 #include <cstdio>
+#include <vector>
+#include <sstream>
+#include <iomanip>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 #define RUTA_BASE "F:\\UNSA\\2024-A\\Base de Datos II\\Megatron\\usr\\db\\"
 
@@ -24,7 +31,9 @@ struct Nodo {
     Nodo* next;
 
     Nodo(int numBloque, int espLibre)
-        : numeroBloque(numBloque), espacioLibre(espLibre), prev(nullptr), next(nullptr) {}
+        : numeroBloque(numBloque), espacioLibre(espLibre), prev(nullptr), next(nullptr) {
+            std::cout << "Insertando bloque a nodo --> Numero de bloque: " << numeroBloque << ", Espacio libre: " << espacioLibre << std::endl;
+        }
     
     void agregarSector(int idSector, int plato, char superficie, int pista) {
         sectores[idSector] = std::make_tuple(plato, superficie, pista, false);
@@ -116,7 +125,7 @@ class DiskManager {
         void showBlockContent(int); //Imprime el contenido de un bloque
         void showSectorContent(int, char, int, int); //Imprime el contenido de un sector
 
-        //Modificar esquema con bloque al que pertenece
+        std::vector<std::string> readBlockToVector(int);
 
 
         // ================= HEAP FILE ==========

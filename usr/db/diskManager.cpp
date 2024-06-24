@@ -1,13 +1,5 @@
 #include "diskManager.h"
 
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
-#include <filesystem>
-namespace fs = std::filesystem;
-
 void eliminarLinea(const std::string& archivoEntrada, const std::string& archivoSalida, int numLineaEliminar);
 void reemplazarCabecera(const std::string& archivo, const CabeceraSector& nuevaCabecera);
 
@@ -106,13 +98,12 @@ void DiskManager::createStructureDisk() {
 
         std::unordered_map<int, std::tuple<int, char, int, bool>> sectores;
         for (int sector = 1; sector <= disco.getCantidadSectoresxBloque(); sector++) {
-            sectores[sector] = std::make_tuple(this->platoAct, this->superfAct, this->pistaAct, false);
+            sectores[this->sectorAct] = std::make_tuple(this->platoAct, this->superfAct, this->pistaAct, false);
 
             this->sectorAct++;
 
             validarUbicacionActual();
         }
-
         insertBlocktoFreeHeapFile(bloque, sizeBlock, sectores);
 
         archivo.close();
@@ -125,7 +116,6 @@ void DiskManager::createStructureDisk() {
 
     std::cout << "La estructura del disco ha sido creada exitosamente." << std::endl;
 }
-
 
 
 void DiskManager::showBlockContent(int numBloque) {
@@ -164,6 +154,26 @@ void DiskManager::showSectorContent(int plato, char superficie, int pista, int s
     archivo.close();
 }
 
+std::vector<std::string> DiskManager::readBlockToVector(int numBloque) {
+    std::vector<std::string> registros;
+    std::string carpetaBloque = RUTA_BASE + std::string("Bloques\\");
+    std::string archivoBloque = carpetaBloque + std::string("Bloque") + std::to_string(numBloque) + ".txt";
+    std::ifstream file(archivoBloque);
+
+    if (!file.is_open()) {
+        std::cerr << "Error al abrir el archivo: " << archivoBloque << std::endl;
+        return registros;
+    }
+
+    std::string line;
+    std::getline(file, line); // Ignorar la cabecera
+    while (std::getline(file, line)) {
+        registros.push_back(line);
+    }
+
+    file.close();
+    return registros;
+}
 
 // ============================================ HEAP FILE ===================================================
 
@@ -247,6 +257,7 @@ void DiskManager::printBlockHeapFile(int numBloque) {
 Nodo* DiskManager::searchFreeSpace(int numBloque) {
     Nodo* actual = this->freeSpaceInicial;
     while (actual) {
+        std::cout << "--> Visitando bloque " << actual->numeroBloque << " en heap file (Free)" << std::endl;
         if (actual->numeroBloque == numBloque) {
             return actual;
         }
@@ -258,6 +269,7 @@ Nodo* DiskManager::searchFreeSpace(int numBloque) {
 Nodo* DiskManager::searchFullSpace(int numBloque) {
     Nodo* actual = this->fullSpaceInicial;
     while (actual) {
+        std::cout << "Visitando bloque " << actual->numeroBloque << " en heap file (Full)" << std::endl;
         if (actual->numeroBloque == numBloque) {
             return actual;
         }
@@ -290,6 +302,8 @@ void DiskManager::decreaseSpaceofBlock(int numBloque) {
     }
 
     bloque->espacioLibre = bloque->espacioLibre - longitudRegistro;
+
+    std::cout << " -- Bloque " << bloque->numeroBloque << " con espacio libre reducido a " << bloque->espacioLibre << std::endl;
     
     if(bloque->espacioLibre < longitudRegistro) {
         moveBlockFreeToFull(bloque);
@@ -313,6 +327,7 @@ void DiskManager::increaseSpaceofBlock(int numBloque) {
     }
 
     bloque->espacioLibre = bloque->espacioLibre + longitudRegistro;
+    std::cout << "++ Bloque " << bloque->numeroBloque << " con espacio libre incrementado a " << bloque->espacioLibre << std::endl;
     
     if(searchFullSpace(bloque->numeroBloque) && bloque->espacioLibre >= longitudRegistro){
         moveBlockFullToFree(bloque);
@@ -358,6 +373,8 @@ void DiskManager::moveBlockFreeToFull(Nodo* nodo) {
         fullSpaceFinal = nodo;
     }
 
+    std::cout << "El bloque " << nodo->numeroBloque << " fue movido de la lista FREE a FULL" << std::endl;
+
     nodo->next = nullptr;
 }
 
@@ -372,6 +389,8 @@ void DiskManager::moveBlockFullToFree(Nodo* nodo) {
         this->freeSpaceInicial->prev = nodo;
         this->freeSpaceInicial = nodo;
     }
+
+    std::cout << "El bloque " << nodo->numeroBloque << " fue movido de la lista FULL a FREE" << std::endl;
 
     nodo->prev = nullptr;
 }
@@ -580,7 +599,7 @@ void DiskManager::useLongitudFija(std::string lineaArchivo) {
 
         std::getline(ss, token, '#'); // Ignorar el identificador
         std::getline(ss, token, '#');
-        std::cout << "espacioDisponible: " << bloque->espacioLibre << std::endl;
+        std::cout << "*** Bloque: " << bloque->numeroBloque << "; Espacio Disponible: " << bloque->espacioLibre << std::endl;
 
         if (bloque->espacioLibre >= longitudRegistro) {
             std::getline(ss, token, '#');
@@ -592,7 +611,7 @@ void DiskManager::useLongitudFija(std::string lineaArchivo) {
             } else {
                 ubicacion = 0;
             }
-            std::cout << "ubicacion: " << ubicacion << std::endl;
+            std::cout << "\tEspacio libre entre registros: " << ubicacion << std::endl;
         } 
         /*else {
             archivoReadBloque.close();
@@ -618,8 +637,6 @@ void DiskManager::useLongitudFija(std::string lineaArchivo) {
 
         decreaseSpaceofBlock(bloque->numeroBloque);
 
-        std::cout << "espacioDisponibleDESPUÉS DE RESTA: " << bloque->espacioLibre << std::endl;
-
         CabeceraSector nuevaCabecera;
         nuevaCabecera.identificador = bloque->numeroBloque;
         nuevaCabecera.espacioDisponible = bloque->espacioLibre;
@@ -627,8 +644,6 @@ void DiskManager::useLongitudFija(std::string lineaArchivo) {
         reemplazarCabecera(archivoBloque, nuevaCabecera);
 
         sectorActualizado = false;
-
-        std::cout << "CABECERA REEMPLAZADA" << std::endl;
         
         sectorFillLongitudFija(registro, ubicacion, bloque);
 
@@ -641,11 +656,14 @@ void DiskManager::sectorFillLongitudFija(const std::string& lineaArchivo, int ub
     for (const auto& par : bloque->sectores) {
         const auto& [idSector, tupla] = par;
         estado = std::get<3>(tupla);
-        if (!estado) 
+        if (!estado) {
             this->platoAct = std::get<0>(tupla);
             this->superfAct = std::get<1>(tupla);
             this->pistaAct = std::get<2>(tupla);
+            this->sectorAct = idSector;
+            std::cout << "Plato Actual: " << this->platoAct << "; Superficie Actual: " << this->superfAct << "; Pista Actual: " << this->pistaAct << "; Sector Actual: " << this->sectorAct << std::endl;
             break; // Se encontró un sector con estado false, se imprime y se sale de la función
+        }
         
     }
     if(estado) return;
